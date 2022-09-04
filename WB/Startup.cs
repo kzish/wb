@@ -46,17 +46,17 @@ namespace WB
                 .AddDefaultUI()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);//similar to multiple active result sets for mysql
-            services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, opt =>
-            {
-                opt.LoginPath = "/Auth/Login";
-                opt.AccessDeniedPath = "/Auth/Login";
-            });
+            //services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, opt =>
+            //{
+            //    opt.LoginPath = "/Auth/Login";
+            //    opt.AccessDeniedPath = "/Auth/Login";
+            //});
             //for tempdata
-            services.Configure<CookieTempDataProviderOptions>(options =>
-            {
-                options.Cookie.IsEssential = true;
-            });
-            services.AddSingleton<dbContext>();
+            //services.Configure<CookieTempDataProviderOptions>(options =>
+            //{
+            //    options.Cookie.IsEssential = true;
+            //});
+            services.AddTransient<dbContext>();
             services.AddControllersWithViews();
         }
 
@@ -75,10 +75,10 @@ namespace WB
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseCookiePolicy();//place befroe mvc
+            //app.UseCookiePolicy();//place befroe mvc
             app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
+            //app.UseAuthentication();
+            //app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
