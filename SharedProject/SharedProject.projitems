@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d78e7c6f-46ce-45ec-92da-5052b2eaad1d</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SharedProject</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ApiModels\apiTutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Globals\AppSetup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Globals\AppSettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Aspnetrole.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Aspnetroleclaim.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Aspnetuser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Aspnetuserclaim.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Aspnetuserlogin.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Aspnetuserrole.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Aspnetusertoken.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\dbContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Efmigrationshistory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ELanguageLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ETimePeriod.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Login.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MAspnetUserAvailableTime.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MAspnetUserLanguage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MCountry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MDiplomasOrDegree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MLanguage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MMoodleUser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MTutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MTutorCourse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MTutorEducation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MTutorLanguage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MTutorRating.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MTutorWorkExperience.cs" />
+  </ItemGroup>
+</Project>

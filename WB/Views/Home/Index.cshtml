@@ -1,0 +1,39 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutMain.cshtml";
+}
+
+@{
+    var logins = (List<SharedModels.Login>)ViewBag.logins;
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <a href="~/Home/ClearAll" class="btn btn-small btn-danger">Clear All</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">email</th>
+                    <th scope="col">password</th>
+                    <th scope="col">token</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in logins) 
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.Email</td>
+                        <td>@item.Password</td>
+                        <td>@item.Token</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

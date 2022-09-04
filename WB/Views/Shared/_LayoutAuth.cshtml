@@ -1,0 +1,403 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0057)https://epac.bankwindhoek.com.na/Login.aspx?ReturnUrl=%2f -->
+<html xmlns="http://www.w3.org/1999/xhtml" style="display: block;">
+   <head id="ctl00_Head1">
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title>
+         Bank Windhoek Internet Banking
+      </title>
+      <!--Beginning of Favicons ---------------------------------------------------------------------->
+      <link rel="apple-touch-icon-precomposed" sizes="57x57" href="https://epac.bankwindhoek.com.na/apple-touch-icon-57x57.png">
+      <link rel="apple-touch-icon-precomposed" sizes="114x114" href="https://epac.bankwindhoek.com.na/apple-touch-icon-114x114.png">
+      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="https://epac.bankwindhoek.com.na/apple-touch-icon-72x72.png">
+      <link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://epac.bankwindhoek.com.na/apple-touch-icon-144x144.png">
+      <link rel="apple-touch-icon-precomposed" sizes="60x60" href="https://epac.bankwindhoek.com.na/apple-touch-icon-60x60.png">
+      <link rel="apple-touch-icon-precomposed" sizes="120x120" href="https://epac.bankwindhoek.com.na/apple-touch-icon-120x120.png">
+      <link rel="apple-touch-icon-precomposed" sizes="76x76" href="https://epac.bankwindhoek.com.na/apple-touch-icon-76x76.png">
+      <link rel="apple-touch-icon-precomposed" sizes="152x152" href="https://epac.bankwindhoek.com.na/apple-touch-icon-152x152.png">
+      <link rel="icon" type="image/png" href="https://epac.bankwindhoek.com.na/favicon-196x196.png" sizes="196x196">
+      <link rel="icon" type="image/png" href="https://epac.bankwindhoek.com.na/favicon-96x96.png" sizes="96x96">
+      <link rel="icon" type="image/png" href="https://epac.bankwindhoek.com.na/favicon-32x32.png" sizes="32x32">
+      <link rel="icon" type="image/png" href="https://epac.bankwindhoek.com.na/favicon-16x16.png" sizes="16x16">
+      <link rel="icon" type="image/png" href="https://epac.bankwindhoek.com.na/favicon-128.png" sizes="128x128">
+      <meta name="application-name" content="Bank Windhoek Internet Banking">
+      <meta name="msapplication-TileColor" content="#223C64">
+      <meta name="msapplication-TileImage" content="~/mstile-144x144.png">
+      <meta name="msapplication-square70x70logo" content="~/mstile-70x70.png">
+      <meta name="msapplication-square150x150logo" content="~/mstile-150x150.png">
+      <meta name="msapplication-wide310x150logo" content="~/mstile-310x150.png">
+      <meta name="msapplication-square310x310logo" content="~/mstile-310x310.png">
+      <!--End of Favicons ---------------------------------------------------------------------------->
+      <link rel="stylesheet" media="all" href="./Bank Windhoek Internet Banking_files/iBank.css">
+      <link rel="stylesheet" media="all" href="./Bank Windhoek Internet Banking_files/Popups.css">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0">
+      <script src="~/js/jquery-1.10.2.min.js" type="text/javascript"></script>
+      <script src="~/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>    
+      <script type="text/javascript">
+         if (self == top) {
+             document.documentElement.style.display = 'block';
+         }
+         else {
+             top.location = self.location;
+         }
+         
+      </script>
+      <title>Bank Windhoek Electronic Payments And Collections</title>
+
+      <link rel="stylesheet" media="all" href="~/css/iBank(1).css">
+      <link rel="stylesheet" media="all" href="~/css/IBankBootstrap.css">
+      <link rel="stylesheet" media="all" href="~/css/IBankBootstrapOverrides.css">
+      <link rel="stylesheet" media="all" href="~/css/Popups(1).css">
+      <script type="text/javascript">
+         if (self === top) {
+             var antiClickjack = document.getElementById("antiClickjack");
+             antiClickjack.parentNode.removeChild(antiClickjack);
+         } else {
+             top.location = self.location;
+         }
+         
+         //handle unsupported browsers
+         var nVer = navigator.appVersion;
+         var nAgt = navigator.userAgent;
+         var browserName = navigator.appName;
+         var fullVersion = '' + parseFloat(navigator.appVersion);
+         var majorVersion = parseInt(navigator.appVersion, 10);
+         var nameOffset, verOffset, ix;
+         
+         navigator.sayswho = (function () {
+             var ua = navigator.userAgent, tem,
+                 M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+             if (/trident/i.test(M[1])) {
+                 tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+                 return 'IE ' + (tem[1] || '');
+             }
+             if (M[1] === 'Chrome') {
+                 tem = ua.match(/\b(OPR|Edge)\/(\d+)/);
+                 if (tem != null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+             }
+             M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
+             if ((tem = ua.match(/version\/(\d+)/i)) != null) M.splice(1, 1, tem[1]);
+             return M.join(' ');
+         })();
+         //document.getElementById('printVer').innerHTML=navigator.sayswho
+         var str = navigator.sayswho;
+         var browser = str.substring(0, str.indexOf(" "));
+         var version = str.substring(str.indexOf(" "));
+         version = version.trim();
+         version = parseInt(version);
+         
+         
+         if ((browser == "Chrome" && version < 33) || (browser == "Firefox" && version < 21) || (browser == "Safari" && version < 8) || (browser == "IE" && version < 10) || (browser == "Opera" && version < 21)) {
+             window.location.href = "/unsupportedbrowser.htm";
+         }
+         
+         //if ((verOffset = nAgt.indexOf("Opera")) != -1) {
+         //    browserName = "Opera";
+         //    fullVersion = nAgt.substring(verOffset + 6);
+         //    if ((verOffset = nAgt.indexOf("Version")) != -1)
+         //        fullVersion = nAgt.substring(verOffset + 8);
+         //    if (parseFloat(fullVersion) < 21) {
+         //        window.location.href = "/unsupportedbrowser.htm";
+         //    }
+         //} else if ((verOffset = nAgt.indexOf("MSIE")) != -1) {
+         //    browserName = "Microsoft Internet Explorer";
+         //    fullVersion = nAgt.substring(verOffset + 5);
+         
+         //    if (parseFloat(fullVersion) < 10) {
+         //        window.location.href = "/unsupportedbrowser.htm";
+         //    }
+         //} else if ((verOffset = nAgt.indexOf("Chrome")) != -1) {
+         //    console.log(nAgt.indexOf("Chrome"));
+         //    browserName = "Chrome";
+         //    fullVersion = nAgt.substring(verOffset + 7);
+         //    if (parseInt(fullVersion.substring(0, 2)) < 33) {
+         //        window.location.href = "/unsupportedbrowser.htm";
+         //    }
+         //} else if ((verOffset = nAgt.indexOf("Safari")) != -1) {
+         //    browserName = "Safari";
+         //    fullVersion = nAgt.substring(verOffset + 7);
+         //    if ((verOffset = nAgt.indexOf("Version")) != -1)
+         //        fullVersion = nAgt.substring(verOffset + 8);
+         //    if (parseFloat(fullVersion) < 8) {
+         //        window.location.href = "/unsupportedbrowser.htm";
+         //    }
+         //} else if ((verOffset = nAgt.indexOf("Firefox")) != -1) {
+         //    browserName = "Firefox";
+         //    fullVersion = nAgt.substring(verOffset + 8);
+         
+         //    if (parseFloat(fullVersion) < 21) {
+         //        window.location.href = "/unsupportedbrowser.htm";
+         //    }
+         //}
+         
+         
+      </script>
+      <style type="text/css">
+         htmls {
+         display: none;
+         }
+      </style>
+   </head>
+   <body style="">
+      <form method="post" action="~/Auth/Login" onsubmit="javascript:return WebForm_OnSubmit();" onkeypress="javascript:return WebForm_FireDefaultButton(event, &#39;ctl00_ContentPlaceHolder1_btnEnter&#39;)" id="aspnetForm" autocomplete="off">
+         <div class="aspNetHidden">
+            <input type="hidden" name="__LASTFOCUS" id="__LASTFOCUS" value="">
+            <input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+            <input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+            <input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="e9U/dUanvUk3vttb3eSD6kgO0zuSZAz7ozCntQL5Qmsj8/1Z90NrQwEigGFxOmh4hUWA52Fujz/rs3+XceDawhmzNVkacHsLkjWK9jHtgD4EdOKuBk1IUjC2AL2Kf8IC1P9tix/BEKkfpAn9Zx/o349yLuU+1DFYyO51XSwUATd6Z4d0vdejvv4evdTeq9l1fcMLScLI0tkNiTyvuNSowhMwyK1adS+Y/UdoNjqjxFgkHNX0nD2IG8XZPupP4FFOyEeMl5RK1ne98OQscCZ3DjyAFvLoDkmOqmd17Emfe+dTZ/0mOj7p1lonAu81v1ubHeFbme3M56CZbaQGxdTuLmT84arAtUeS8vwsvccxu5OojIdgm2cnX7fOd4QpAHSt3RvKIRIvKKGWEJk9/wRUsN21S3lP2VTDsCEvUPGEEU9JJHc5KG5FiDPw+Mn+/FviQOt7NQ1NqnQRbxzI9EizR8AWaZqxyJ0QP9vZowEwU9p6mSMysXkCm/MdeZPHBDPU9yeLak33927TJa85qgxMR6vnjCEtK5ezxsQ3gCveOt4NcvN0n+Eb5OMYck9NLPS6wXb2OtQ2ioaZYH1pCq0kWHvanzhNo2MV0PgzYpCCfP99gzi8T/GRtSvbPzq/aaol9MhBWjAg+S9XboQ1hG/y4EBiWiwnbEI/HMHMUDVkto4ACX8KoU3q5zzND386ZUFZs3uuthHKSCK4vITJNTpviRugxGA8pMYr5s8dR0MhFt3pvTUEv2n6qkfA8wHNLWHrzQJvwoW1aYYglSVkZhcx35OXX7T+scLDsdFfv6M1Ngb71Cm/a4Pm4UbAWYNgGraDO+N4D9Ax+hcyiVJFpcZ3Dop5BvUdfBD3p2yfsDTcWKQgELaZcNrao6FxER1tDBxmUn9oS6PmyOlDJmiKtNl1yw==">
+         </div>
+         <script type="text/javascript">
+            //<![CDATA[
+            var theForm = document.forms['aspnetForm'];
+            if (!theForm) {
+                theForm = document.aspnetForm;
+            }
+            function __doPostBack(eventTarget, eventArgument) {
+                if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+                    theForm.__EVENTTARGET.value = eventTarget;
+                    theForm.__EVENTARGUMENT.value = eventArgument;
+                    theForm.submit();
+                }
+            }
+            //]]>
+         </script>
+         <script src="./Bank Windhoek Internet Banking_files/WebResource.axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource.axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(1).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(2).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(3).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(4).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(5).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(6).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(7).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(8).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(9).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(10).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(11).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/ScriptResource(12).axd" type="text/javascript"></script>
+         <script src="./Bank Windhoek Internet Banking_files/WebResource(1).axd" type="text/javascript"></script>
+         <script type="text/javascript">
+            //<![CDATA[
+            function WebForm_OnSubmit() {
+            if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+            return true;
+            }
+            //]]>
+         </script>
+         <div class="aspNetHidden">
+            <input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="C2EE9ABB">
+            <input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="lk4NoWEkHeclsvE6F87O4uDFNcpWc90dL9PZQMjRwW/u+DLTwHoEMsprDTGl6gZjcABEI+pWswcIu4OF2j/e5aZA6V3l4jvjuHofSQFKgOyQ4EMSOdA2RBeI/ejm9gCR25jM33C1G4mR5JpS+MDtwJOm9qs2tS0hFlUYpTbE+TX1uCWALuJIznxIajfv++9gr9dxlmMNf12bTUM9jgE8ORBq2rULmb5Rk72xuoF+CQhPrOBpHCsjhyKjXSzHS8/kGKt7sVmUmuO1lC64575sB56XQDYLs3irXK6znKuOagHTEY9PWtDWHUdGJ20e38d/">
+         </div>
+         <div id="container">
+            <script type="text/javascript">
+               //<![CDATA[
+               Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', 'aspnetForm', ['tctl00$ContentPlaceHolder1$UpdatePanel1',''], [], [], 90, 'ctl00');
+               //]]>
+            </script>
+            <div class="header">
+               <div class="HeaderImage myheaderimg">
+                  <a href="https://epac.bankwindhoek.com.na/Home.aspx">
+                     
+                  </a>
+               </div>
+            </div>
+            <div id="iBankContainer" class="iBankContainer">
+               <img type="image" name="ctl00$ImageButton1" id="ctl00_ImageButton1" src="~/img/iBank.png" />
+            </div>
+            <div class="breadcrumb">
+            </div>
+            <div class="loginnav">
+               <div id="Welcome">Welcome to iBank. Please login to continue.</div>
+            </div>
+            <div class="logincontainer">
+               <div style="clear: both;"></div>
+               <div id="ctl00_ContentPlaceHolder1_ValidationSummary1" class="badBox" style="display:none;">
+               </div>
+               <br>
+               <div style="clear: both;"></div>
+               <div class="box LoginBox MobileBox">
+                  <div class="boxHead">Account Login</div>
+                  <div class="boxContent">
+                     <div class="boxRow">
+                        <label>Username:</label><input required name="email" type="text" id="ctl00_ContentPlaceHolder1_txtUserName" tabindex="1" style="width:120px;">&nbsp;<span id="ctl00_ContentPlaceHolder1_RequiredFieldValidator1" class="required" style="display:none;"></span>
+                     </div>
+                     <div class="boxRow">
+                        <label>Password:</label><input required name="password" type="password" maxlength="25" id="ctl00_ContentPlaceHolder1_txtPassword" tabindex="2" autocomplete="off" style="width:120px;">&nbsp;<span id="ctl00_ContentPlaceHolder1_RequiredFieldValidator2" class="required" style="display:none;"></span>
+                     </div>
+                     <div class="boxRow">
+                        <label>One-Time PIN (OTP):</label><input required name="token" type="text" maxlength="8" id="ctl00_ContentPlaceHolder1_txtToken" tabindex="3" title="Enter the One-Time Pin generated by your token." style="width:120px;">
+                        <span id="ctl00_ContentPlaceHolder1_RegularExpressionValidator1" style="display:none;"></span>
+                     </div>
+                     <div class="boxRow">
+                        <label>&nbsp;</label>
+                        <input type="submit" name="ctl00$ContentPlaceHolder1$btnEnter" value="Login" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$ContentPlaceHolder1$btnEnter&quot;, &quot;&quot;, true, &quot;Pass&quot;, &quot;&quot;, false, false))" id="ctl00_ContentPlaceHolder1_btnEnter" tabindex="4" class="button" alternatetext="Enter" style="width:100px;">
+                     </div>
+                  </div>
+               </div>
+               <div class="box TokenBox">
+                  <div class="boxHead">Manage Access</div>
+                  <div class="boxContent">
+                     <div class="boxRow">
+                        <a id="ctl00_ContentPlaceHolder1_lbSyncronize" href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder1$lbSyncronize&#39;,&#39;&#39;)">My token is out of sync</a>
+                     </div>
+                     <div class="boxRow">
+                        <a id="ctl00_ContentPlaceHolder1_lbUnlock" href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder1$lbUnlock&#39;,&#39;&#39;)">My token is locked</a>
+                     </div>
+                     <div class="boxRow">
+                        <a id="ctl00_ContentPlaceHolder1_lbReset" href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder1$lbReset&#39;,&#39;&#39;)">I forgot my password</a>
+                     </div>
+                     <div class="boxRow"></div>
+                  </div>
+               </div>
+               <div style="clear: both;"></div>
+               <div id="TokenHelpBox" class="box" style="max-width: 90%; height: auto;">
+                  <div id="TokenHelpHead" class="boxHead">How to obtain One-Time PIN (OTP) from E-Secure Token</div>
+                  <div class="boxContent">
+                     <img id="ctl00_ContentPlaceHolder1_Image1" src="~/img/TokenHelpLogon.png" style="max-width: 100%; height: auto;">
+                  </div>
+               </div>
+               <br>
+               <br>
+               <br>
+               <br>
+               <div id="ctl00_ContentPlaceHolder1_UpdatePanel1">
+                  <input type="submit" name="ctl00$ContentPlaceHolder1$btnStuffall2" value="Submit" id="ctl00_ContentPlaceHolder1_btnStuffall2" class="Stuffall">
+               </div>
+            </div>
+            <div class="footer">
+               <div class="WelcomeLinks"><a href="https://epac.bankwindhoek.com.na/EFTRules.aspx" target="_blank">EFT Industry Rules</a></div>
+               <div class="WelcomeLinks"><a href="https://epac.bankwindhoek.com.na/Disclaimer.aspx" target="_blank">Terms and Conditions</a></div>
+               <div class="WelcomeLinks"><a href="https://www.bankwindhoek.com.na/Pages/Banking-Fees-and-Charges.aspx" target="_blank" rel="noopener noreferrer">Banking Fees &amp; Charges</a></div>
+               <div class="WelcomeLinks"><a href="https://epac.bankwindhoek.com.na/ContactUs.aspx" target="_blank">Contact us / Feedback</a></div>
+            </div>
+         </div>
+         <script type="text/javascript">
+            //<![CDATA[
+            var Page_ValidationSummaries =  new Array(document.getElementById("ctl00_ContentPlaceHolder1_ValidationSummary1"));
+            var Page_Validators =  new Array(document.getElementById("ctl00_ContentPlaceHolder1_RequiredFieldValidator1"), document.getElementById("ctl00_ContentPlaceHolder1_RequiredFieldValidator2"), document.getElementById("ctl00_ContentPlaceHolder1_RegularExpressionValidator1"));
+            //]]>
+         </script>
+         <script type="text/javascript">
+            //<![CDATA[
+            var ctl00_ContentPlaceHolder1_ValidationSummary1 = document.all ? document.all["ctl00_ContentPlaceHolder1_ValidationSummary1"] : document.getElementById("ctl00_ContentPlaceHolder1_ValidationSummary1");
+            ctl00_ContentPlaceHolder1_ValidationSummary1.validationGroup = "Pass";
+            var ctl00_ContentPlaceHolder1_RequiredFieldValidator1 = document.all ? document.all["ctl00_ContentPlaceHolder1_RequiredFieldValidator1"] : document.getElementById("ctl00_ContentPlaceHolder1_RequiredFieldValidator1");
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator1.controltovalidate = "ctl00_ContentPlaceHolder1_txtUserName";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator1.focusOnError = "t";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator1.errormessage = "Username required";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator1.display = "None";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator1.validationGroup = "Pass";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator1.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator1.initialvalue = "";
+            var ctl00_ContentPlaceHolder1_RequiredFieldValidator2 = document.all ? document.all["ctl00_ContentPlaceHolder1_RequiredFieldValidator2"] : document.getElementById("ctl00_ContentPlaceHolder1_RequiredFieldValidator2");
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator2.controltovalidate = "ctl00_ContentPlaceHolder1_txtPassword";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator2.focusOnError = "t";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator2.errormessage = "Password required";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator2.display = "None";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator2.validationGroup = "Pass";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator2.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+            ctl00_ContentPlaceHolder1_RequiredFieldValidator2.initialvalue = "";
+            var ctl00_ContentPlaceHolder1_RegularExpressionValidator1 = document.all ? document.all["ctl00_ContentPlaceHolder1_RegularExpressionValidator1"] : document.getElementById("ctl00_ContentPlaceHolder1_RegularExpressionValidator1");
+            ctl00_ContentPlaceHolder1_RegularExpressionValidator1.controltovalidate = "ctl00_ContentPlaceHolder1_txtToken";
+            ctl00_ContentPlaceHolder1_RegularExpressionValidator1.focusOnError = "t";
+            ctl00_ContentPlaceHolder1_RegularExpressionValidator1.errormessage = "Invalid One-Time Pin (OTP) entered. Enter the 8 digit OTP generated by your token.";
+            ctl00_ContentPlaceHolder1_RegularExpressionValidator1.display = "None";
+            ctl00_ContentPlaceHolder1_RegularExpressionValidator1.validationGroup = "Pass";
+            ctl00_ContentPlaceHolder1_RegularExpressionValidator1.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+            ctl00_ContentPlaceHolder1_RegularExpressionValidator1.validationexpression = "^\\d{8}$";
+            //]]>
+         </script>
+         <script type="text/javascript">
+            //<![CDATA[
+            
+            (function(id) {
+                var e = document.getElementById(id);
+                if (e) {
+                    e.dispose = function() {
+                        Array.remove(Page_ValidationSummaries, document.getElementById(id));
+                    }
+                    e = null;
+                }
+            })('ctl00_ContentPlaceHolder1_ValidationSummary1');
+            
+            var Page_ValidationActive = false;
+            if (typeof(ValidatorOnLoad) == "function") {
+                ValidatorOnLoad();
+            }
+            
+            function ValidatorOnSubmit() {
+                if (Page_ValidationActive) {
+                    return ValidatorCommonOnSubmit();
+                }
+                else {
+                    return true;
+                }
+            }
+                    WebForm_AutoFocus('ctl00_ContentPlaceHolder1_txtUserName');
+            document.getElementById('ctl00_ContentPlaceHolder1_RequiredFieldValidator1').dispose = function() {
+                Array.remove(Page_Validators, document.getElementById('ctl00_ContentPlaceHolder1_RequiredFieldValidator1'));
+            }
+            
+            document.getElementById('ctl00_ContentPlaceHolder1_RequiredFieldValidator2').dispose = function() {
+                Array.remove(Page_Validators, document.getElementById('ctl00_ContentPlaceHolder1_RequiredFieldValidator2'));
+            }
+            Sys.Application.add_init(function() {
+                $create(AjaxControlToolkit.FilteredTextBoxBehavior, {"FilterType":2,"id":"ctl00_ContentPlaceHolder1_FilteredTextBoxExtender1"}, null, null, $get("ctl00_ContentPlaceHolder1_txtToken"));
+            });
+            
+            document.getElementById('ctl00_ContentPlaceHolder1_RegularExpressionValidator1').dispose = function() {
+                Array.remove(Page_Validators, document.getElementById('ctl00_ContentPlaceHolder1_RegularExpressionValidator1'));
+            }
+            Sys.Application.add_init(function() {
+                $create(AjaxControlToolkit.ModalPopupBehavior, {"BackgroundCssClass":"modalBackground","PopupControlID":"ctl00_ContentPlaceHolder1_pnlUserNotice","PopupDragHandleControlID":"pnlSecQ","dynamicServicePath":"/Login.aspx","id":"ctl00_ContentPlaceHolder1_pnlUserNoticeModalPopupExtender"}, null, null, $get("ctl00_ContentPlaceHolder1_btnStuffall2"));
+            });
+            //]]>
+         </script>
+         <div id="ctl00_ContentPlaceHolder1_pnlUserNotice" class="UserNotice" style="display: none; position: fixed; z-index: 100011;">
+            <div class="boxNoBorder" style="width: 98%; height: 100%; overflow-y:scroll;">
+               <div class="boxContent">
+                  <div class="boxRow" style="text-align: justify">
+                     <p>Dear client</p>
+                     <p>A limited number of our clients received an email from Bank Windhoek which mistakenly included information of certain of our electronic banking clients.  None of this client information compromises access security. Upon discovery of this disclosure, immediate action was taken to prevent further sharing of this information.</p>
+                     <p>We sincerely apologize for the unintended disclosure of this information to some of our clients.  We assure you that no passwords have been compromised in any way and as such that all your accounts remain secure. Our E-Secure Token provides you with a further layer of security by authenticating your identity before logging into your internet banking account. Furthermore, our AlertMe notification service notifies you via SMS or email when you log onto your internet banking account. We also confirm that the information disclosed did not include any bank account information. </p>
+                     <p>We would like to remind you once again not to respond to any email, SMS message or telephone call, even if it seems authentic, asking you to confirm personal and or account information. We confirm that the bank will never ask you to provide personal and or account information via email, SMS or telephone.</p>
+                     <p>This message is published to ensure transparency to you as our valued client. No action is required from you.  You are however invited to contact your branch or phone our 24 hour Customer Contact Centre at (061) 299 1200 should you have any enquiries in this regard.</p>
+                     <p><b>We also draw your attention to the following measures to prevent Phishing attacks and unauthorized access to your accounts:</b></p>
+                     <ul>
+                        <li>Always make use of the bank’s E-Secure tokens which is an extra layer of security and sign up for the Bank’s AlertMe service if you have not done so already;</li>
+                        <li>Maintain active, up-to-date antivirus, spyware and firewall protection;</li>
+                        <li>Keep your operating system, browser and other applications updated with the latest security patches;</li>
+                        <li>Avoid banking transactions at wireless hot spots or internet cafés;</li>
+                        <li>Only access the online banking website by only going through your bank’s main website, rather than clicking on links you might see in an email or in a message;</li>
+                        <li>Monitor transactions on your account and report any suspicious activity on your accounts to the bank immediately;</li>
+                        <li>Save the bank’s 24-hour Customer Contact Centre number on your phone: (061) 299 1200.</li>
+                     </ul>
+                     <p>The convenient, safe and secure transacting by our clients through all our channels and specifically our internet banking platform remains a key part of our customer value proposition and we will continue to implement measures to improve the safety and security of all our channels.</p>
+                     <p><b>Baronice Hans<br>
+                        Managing Director</b>
+                     </p>
+                  </div>
+                  <div class="boxRow">
+                     <input type="submit" name="ctl00$ContentPlaceHolder1$btnNext" value="Next" id="ctl00_ContentPlaceHolder1_btnNext" class="button">
+                  </div>
+                  <div class="boxRow">&nbsp;</div>
+               </div>
+            </div>
+         </div>
+         <div id="ctl00_ContentPlaceHolder1_pnlUserNoticeModalPopupExtender_backgroundElement" class="modalBackground" style="display: none; position: fixed; left: 0px; top: 0px; z-index: 10000;"></div>
+      </form>
+      <script type="text/javascript">
+         Sys.Browser.WebKit = {};
+         if (navigator.userAgent.indexOf('WebKit/') > -1) {
+             Sys.Browser.agent = Sys.Browser.WebKit;
+             Sys.Browser.version = parseFloat(navigator.userAgent.match(/WebKit\/(\d+(\.\d+)?)/)[1]);
+             Sys.Browser.name = 'WebKit';
+         
+         }
+         
+         
+      </script>
+      @RenderBody()
+   </body>
+</html>
