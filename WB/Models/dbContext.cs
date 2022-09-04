@@ -1,5 +1,4 @@
 ﻿using System;
-using Globals;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -32,14 +31,14 @@ namespace SharedModels
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql(AppSettings.connection_string, Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.33-mysql"));
+                optionsBuilder.UseMySql("server=localhost;uid=root;pwd=abc123!;database=wb;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasCharSet("latin1")
-                .UseCollation("latin1_swedish_ci");
+            modelBuilder.HasCharSet("utf8mb4")
+                .UseCollation("utf8mb4_0900_ai_ci");
 
             modelBuilder.Entity<Aspnetrole>(entity =>
             {
@@ -50,23 +49,23 @@ namespace SharedModels
 
                 entity.Property(e => e.Id)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.ConcurrencyStamp)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(256)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.NormalizedName)
                     .HasMaxLength(256)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
             });
 
             modelBuilder.Entity<Aspnetroleclaim>(entity =>
@@ -75,25 +74,23 @@ namespace SharedModels
 
                 entity.HasIndex(e => e.RoleId, "IX_AspNetRoleClaims_RoleId");
 
-                entity.Property(e => e.Id)
-                    .HasColumnType("int(11)")
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.ClaimType)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.ClaimValue)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.RoleId)
                     .IsRequired()
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Aspnetroleclaims)
@@ -112,20 +109,18 @@ namespace SharedModels
 
                 entity.Property(e => e.Id)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
-
-                entity.Property(e => e.AccessFailedCount).HasColumnType("int(11)");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.ConcurrencyStamp)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.Email)
                     .HasMaxLength(256)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.EmailConfirmed).HasColumnType("bit(1)");
 
@@ -135,37 +130,37 @@ namespace SharedModels
 
                 entity.Property(e => e.NormalizedEmail)
                     .HasMaxLength(256)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.NormalizedUserName)
                     .HasMaxLength(256)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.PasswordHash)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.PhoneNumber)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.PhoneNumberConfirmed).HasColumnType("bit(1)");
 
                 entity.Property(e => e.SecurityStamp)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.TwoFactorEnabled).HasColumnType("bit(1)");
 
                 entity.Property(e => e.UserName)
                     .HasMaxLength(256)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
             });
 
             modelBuilder.Entity<Aspnetuserclaim>(entity =>
@@ -174,25 +169,23 @@ namespace SharedModels
 
                 entity.HasIndex(e => e.UserId, "IX_AspNetUserClaims_UserId");
 
-                entity.Property(e => e.Id)
-                    .HasColumnType("int(11)")
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.ClaimType)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.ClaimValue)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.UserId)
                     .IsRequired()
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Aspnetuserclaims)
@@ -212,24 +205,24 @@ namespace SharedModels
 
                 entity.Property(e => e.LoginProvider)
                     .HasMaxLength(128)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.ProviderKey)
                     .HasMaxLength(128)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.ProviderDisplayName)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.UserId)
                     .IsRequired()
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Aspnetuserlogins)
@@ -249,13 +242,13 @@ namespace SharedModels
 
                 entity.Property(e => e.UserId)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.RoleId)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Aspnetuserroles)
@@ -278,23 +271,23 @@ namespace SharedModels
 
                 entity.Property(e => e.UserId)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.LoginProvider)
                     .HasMaxLength(128)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(128)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.Property(e => e.Value)
                     .HasMaxLength(450)
-                    .UseCollation("utf8_general_ci")
-                    .HasCharSet("utf8");
+                    .UseCollation("utf8mb3_general_ci")
+                    .HasCharSet("utf8mb3");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Aspnetusertokens)
@@ -309,9 +302,6 @@ namespace SharedModels
 
                 entity.ToTable("__efmigrationshistory");
 
-                entity.HasCharSet("utf8mb4")
-                    .UseCollation("utf8mb4_general_ci");
-
                 entity.Property(e => e.MigrationId).HasMaxLength(150);
 
                 entity.Property(e => e.ProductVersion)
@@ -321,22 +311,20 @@ namespace SharedModels
 
             modelBuilder.Entity<Login>(entity =>
             {
-                entity.ToTable("logins");
+                entity.ToTable("login");
 
-                entity.Property(e => e.Id)
-                    .HasColumnType("int(11)")
-                    .HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Email)
-                    .HasMaxLength(50)
+                    .HasColumnType("text")
                     .HasColumnName("email");
 
                 entity.Property(e => e.Password)
-                    .HasMaxLength(50)
+                    .HasColumnType("text")
                     .HasColumnName("password");
 
                 entity.Property(e => e.Token)
-                    .HasMaxLength(50)
+                    .HasColumnType("text")
                     .HasColumnName("token");
             });
 

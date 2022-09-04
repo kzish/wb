@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using SharedModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,6 +56,7 @@ namespace WB
             {
                 options.Cookie.IsEssential = true;
             });
+            services.AddSingleton<dbContext>();
             services.AddControllersWithViews();
         }
 

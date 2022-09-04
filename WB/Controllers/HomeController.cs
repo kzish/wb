@@ -30,22 +30,20 @@ namespace AAL_TUTOR5.Controllers
     //[Authorize(Roles = "tutor")]
     public class HomeController : Controller
     {
-        dbContext db = new dbContext();
+        dbContext db;
         UserManager<IdentityUser> userManager;
         RoleManager<IdentityRole> roleManager;
         IConfiguration configuration;
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            db.Dispose();
-        }
-
-        public HomeController(IConfiguration configuration, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        public HomeController(IConfiguration configuration, 
+            UserManager<IdentityUser> userManager, 
+            RoleManager<IdentityRole> roleManager,
+            dbContext db)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.configuration = configuration;
+            this.db = db;
         }
 
         [HttpGet("Index")]
