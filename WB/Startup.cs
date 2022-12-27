@@ -38,7 +38,8 @@ namespace WB
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
             var con = Configuration.GetConnectionString("db");
-            var ver = ServerVersion.AutoDetect(con);
+            //var ver = ServerVersion.AutoDetect(con);
+            var ver = Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql");
             services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(con, ver)
             .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Error), ServiceLifetime.Transient);
             services.AddDefaultIdentity<IdentityUser>()

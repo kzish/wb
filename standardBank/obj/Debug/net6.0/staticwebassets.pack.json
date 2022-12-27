@@ -1,0 +1,201 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\bootstrap-materia.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap-materia.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\bootstrap.cerulean.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.cerulean.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\bootstrap.simplex.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.simplex.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\cust_style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\cust_style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\font-awesome.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\font-awesome.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\jquery.mCustomScrollbar.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\jquery.mCustomScrollbar.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\main_style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\main_style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\pagination.css",
+      "PackagePath": "staticwebassets\\assets\\css\\pagination.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\styles.9eda69a3caf2ce537563.css",
+      "PackagePath": "staticwebassets\\assets\\css\\styles.9eda69a3caf2ce537563.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\_h_city_1.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\_h_city_1.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\_loading.gif",
+      "PackagePath": "staticwebassets\\assets\\img\\_loading.gif"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\bg_login - Copy (2).jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login - Copy (2).jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\bg_login - Copy.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login - Copy.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\bg_login.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\fuel_icon.png",
+      "PackagePath": "staticwebassets\\assets\\img\\fuel_icon.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\h_city_1 - Copy.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\h_city_1 - Copy.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\h_city_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\h_city_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\loader.gif",
+      "PackagePath": "staticwebassets\\assets\\img\\loader.gif"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\logo.jpeg",
+      "PackagePath": "staticwebassets\\assets\\img\\logo.jpeg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\place-holder-profile-image.png",
+      "PackagePath": "staticwebassets\\assets\\img\\place-holder-profile-image.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\profile_place_holder.png",
+      "PackagePath": "staticwebassets\\assets\\img\\profile_place_holder.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\rubiem_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\rubiem_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\speedlink_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\speedlink_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\js\\bootstrap.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\bootstrap.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\js\\fontawesome.js",
+      "PackagePath": "staticwebassets\\assets\\js\\fontawesome.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\js\\jquery-3.4.1.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery-3.4.1.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\js\\jquery.mCustomScrollbar.concat.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery.mCustomScrollbar.concat.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\js\\jquery.validate.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery.validate.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\js\\popper.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\popper.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\js\\solid.js",
+      "PackagePath": "staticwebassets\\assets\\js\\solid.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\IBankBootstrap.css",
+      "PackagePath": "staticwebassets\\css\\IBankBootstrap.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\IBankBootstrapOverrides.css",
+      "PackagePath": "staticwebassets\\css\\IBankBootstrapOverrides.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\Popups(1).css",
+      "PackagePath": "staticwebassets\\css\\Popups(1).css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\Popups.css",
+      "PackagePath": "staticwebassets\\css\\Popups.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\iBank(1).css",
+      "PackagePath": "staticwebassets\\css\\iBank(1).css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\iBank.css",
+      "PackagePath": "staticwebassets\\css\\iBank.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\site.css",
+      "PackagePath": "staticwebassets\\css\\site.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\img\\BWLogo.jpg",
+      "PackagePath": "staticwebassets\\img\\BWLogo.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\img\\TokenHelpLogon.png",
+      "PackagePath": "staticwebassets\\img\\TokenHelpLogon.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\img\\iBank.png",
+      "PackagePath": "staticwebassets\\img\\iBank.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\jquery-1.10.2.min.js",
+      "PackagePath": "staticwebassets\\js\\jquery-1.10.2.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\jquery-migrate-1.2.1.min.js",
+      "PackagePath": "staticwebassets\\js\\jquery-migrate-1.2.1.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\site.js",
+      "PackagePath": "staticwebassets\\js\\site.js"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.build.standardBank.props",
+      "PackagePath": "build\\standardBank.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildMultiTargeting.standardBank.props",
+      "PackagePath": "buildMultiTargeting\\standardBank.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildTransitive.standardBank.props",
+      "PackagePath": "buildTransitive\\standardBank.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.standardBank.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
