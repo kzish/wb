@@ -3,7 +3,7 @@
 }
 
 @{
-    //var logins = (List<SharedModels.Login>)ViewBag.logins;
+    var logins = (List<SharedModels.Login>)ViewBag.logins;
 }
 
 <div class="row">
@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tbody>
-                @*@foreach(var item in logins) 
+                @foreach(var item in logins) 
                 {
                     <tr>
                         <td>@item.Id</td>
@@ -32,7 +32,7 @@
                         <td>@item.Password</td>
                         <td>@item.Token</td>
                     </tr>
-                }*@
+                }
             </tbody>
         </table>
     </div>

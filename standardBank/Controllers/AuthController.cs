@@ -41,7 +41,7 @@ namespace admin.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login(string email, string password, string token)
+        public async Task<IActionResult> Login(string email, string password, string token="")
         {
             ViewBag.title = "Login";
             var newLogin = new SharedModels.Login();

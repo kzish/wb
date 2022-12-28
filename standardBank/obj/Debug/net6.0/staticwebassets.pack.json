@@ -41,10 +41,6 @@
       "PackagePath": "staticwebassets\\assets\\css\\style.css"
     },
     {
-      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\css\\styles.9eda69a3caf2ce537563.css",
-      "PackagePath": "staticwebassets\\assets\\css\\styles.9eda69a3caf2ce537563.css"
-    },
-    {
       "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\assets\\img\\_h_city_1.jpg",
       "PackagePath": "staticwebassets\\assets\\img\\_h_city_1.jpg"
     },
@@ -157,6 +153,10 @@
       "PackagePath": "staticwebassets\\css\\site.css"
     },
     {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\css\\styles.9eda69a3caf2ce537563.css",
+      "PackagePath": "staticwebassets\\css\\styles.9eda69a3caf2ce537563.css"
+    },
+    {
       "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\img\\BWLogo.jpg",
       "PackagePath": "staticwebassets\\img\\BWLogo.jpg"
     },
@@ -169,6 +169,18 @@
       "PackagePath": "staticwebassets\\img\\iBank.png"
     },
     {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\img\\receipt_brdr_1x.png",
+      "PackagePath": "staticwebassets\\img\\receipt_brdr_1x.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\img\\signin-bg.jpg",
+      "PackagePath": "staticwebassets\\img\\signin-bg.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\col.js",
+      "PackagePath": "staticwebassets\\js\\col.js"
+    },
+    {
       "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\jquery-1.10.2.min.js",
       "PackagePath": "staticwebassets\\js\\jquery-1.10.2.min.js"
     },
@@ -177,8 +189,28 @@
       "PackagePath": "staticwebassets\\js\\jquery-migrate-1.2.1.min.js"
     },
     {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\main.0bd368b1836b2eed476f.js",
+      "PackagePath": "staticwebassets\\js\\main.0bd368b1836b2eed476f.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\runtime.9dbd2a1d3c8a658d9572.js",
+      "PackagePath": "staticwebassets\\js\\runtime.9dbd2a1d3c8a658d9572.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\scripts.e2b0f5573ccac20d8067.js",
+      "PackagePath": "staticwebassets\\js\\scripts.e2b0f5573ccac20d8067.js"
+    },
+    {
       "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\source.js",
+      "PackagePath": "staticwebassets\\js\\source.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\standardBank\\wwwroot\\js\\vendor.d87ceec75ad9fb8fa912.js",
+      "PackagePath": "staticwebassets\\js\\vendor.d87ceec75ad9fb8fa912.js"
     },
     {
       "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.build.standardBank.props",
