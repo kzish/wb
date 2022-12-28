@@ -1,0 +1,106 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-wb6-42c27a1f-90a3-4ee9-803d-3ffe4eb83757</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\bootstrap-materia.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\bootstrap.cerulean.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\bootstrap.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\bootstrap.simplex.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\cust_style.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\font-awesome.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\jquery.mCustomScrollbar.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\main_style.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\pagination.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\css\style.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\bg_login - Copy (2).jpg" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\bg_login - Copy.jpg" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\bg_login.jpg" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\fuel_icon.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\h_city_1 - Copy.jpg" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\h_city_logo.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\loader.gif" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\logo.jpeg" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\place-holder-profile-image.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\profile_place_holder.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\rubiem_logo.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\speedlink_logo.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\_h_city_1.jpg" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\img\_loading.gif" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\js\bootstrap.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\js\fontawesome.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\js\jquery-3.4.1.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\js\jquery.mCustomScrollbar.concat.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\js\jquery.validate.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\js\popper.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\assets\js\solid.js" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.13" />
+		<PackageReference Include="NEST" Version="7.17.0" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.3" />
+		<PackageReference Include="PagedList.Core.Mvc" Version="3.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.22" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.22" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.13" />
+		<PackageReference Include="Serilog" Version="2.10.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Views\Auth\Login.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\Auth\Register.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\Home\Index.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\Home\Logins.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\Shared\_Layout.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\Shared\_LayoutAuth.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\Shared\_LayoutMain.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\_ViewImports.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Views\_ViewStart.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

@@ -9,7 +9,11 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedProj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "standardBank", "standardBank\standardBank.csproj", "{2129932E-2F96-4A0E-87F0-3A9414464834}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nedBank", "nedBank\nedBank.csproj", "{9619A291-8FB9-452F-91EE-9ECE5BC39A29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nedBank", "nedBank\nedBank.csproj", "{9619A291-8FB9-452F-91EE-9ECE5BC39A29}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fnb", "fnb\fnb.csproj", "{CE7BB4D5-0833-42A0-98B6-917613E1366E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wb6", "wb6\wb6.csproj", "{6D1B3657-1F92-4AE6-841F-B6EF0B55F68F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +33,14 @@ Global
 		{9619A291-8FB9-452F-91EE-9ECE5BC39A29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9619A291-8FB9-452F-91EE-9ECE5BC39A29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9619A291-8FB9-452F-91EE-9ECE5BC39A29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE7BB4D5-0833-42A0-98B6-917613E1366E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE7BB4D5-0833-42A0-98B6-917613E1366E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE7BB4D5-0833-42A0-98B6-917613E1366E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE7BB4D5-0833-42A0-98B6-917613E1366E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D1B3657-1F92-4AE6-841F-B6EF0B55F68F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D1B3657-1F92-4AE6-841F-B6EF0B55F68F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D1B3657-1F92-4AE6-841F-B6EF0B55F68F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D1B3657-1F92-4AE6-841F-B6EF0B55F68F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

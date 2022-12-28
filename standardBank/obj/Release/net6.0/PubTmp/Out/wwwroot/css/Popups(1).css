@@ -1,0 +1,146 @@
+﻿.UserNotice {
+    background-color: white;
+    font-family: Calibri;
+    font-size: 14px;
+    color: #16325C;
+    -moz-border-radius: 5px; /* Firefox */
+    -webkit-border-radius: 5px; /* Safari, Chrome */
+    border-radius: 5px; /* universal */
+    border: 2px solid #16325C;
+    background-color: white;
+    padding-left: 10px;
+    padding-right: 10px;
+    overflow:hidden;
+    height: 90%;
+    width: 95%;
+    padding-bottom: 50px;
+}
+
+.PopupBox {
+    background-color: white;
+    font-family: Verdana,Calibri,sans-serif;
+    font-size: 14px;
+    color: #16325C;
+    -moz-border-radius: 5px; /* Firefox */
+    -webkit-border-radius: 5px; /* Safari, Chrome */
+    border-radius: 5px; /* universal */
+    behavior: url('../Scripts/PIE.htc');
+    border: 2px solid #16325C;
+    background-color: white;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 50%;
+    min-width: 250px;
+    height: auto;
+    top: 180px !important;
+    position: fixed !important;
+    z-index: 10005 !important;
+}
+
+@media (max-width: 1193px) 
+{
+    .PopupBox {
+        top: 250px !important;
+        width: 50%;
+    }
+}
+
+@media (max-width: 700px) 
+{
+    .PopupBox {
+        top: 160px !important;
+        bottom: 10px !important;
+        position: fixed !important;
+    }
+}
+
+.PopupboxHead {
+    background-color: #16325C;
+    -moz-border-radius: 5px; /* Firefox */
+    -webkit-border-radius: 7px; /* Safari, Chrome */
+    behavior: url('../Scripts/PIE.htc');
+    border-radius: 7px; /* universal */
+    color: white;
+    position: relative;
+    top: -13px;
+    left: 12px;
+    display: inline-block;
+    padding: 3px 10px 3px 10px;
+    font-family: Calibri, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    height: 27px;
+    line-height: 27px;
+    vertical-align: middle;
+    cursor: crosshair;
+}
+
+.PopupboxContent {
+    width: 100%;
+    overflow-y: scroll;
+    position: relative;
+    height: 80%;
+}
+
+.PopupboxRow {
+    width: 100%;
+    margin-bottom: 10px;
+    line-height: 30px;
+    vertical-align: middle;
+    align-content: center;
+}
+
+.Popupboxbutton {
+    background-color: #ED1C24;
+    -moz-border-radius: 7px; /* Firefox */
+    -webkit-border-radius: 7px; /* Safari, Chrome */
+    border-radius: 7px; /* universal */
+    color: white;
+    border: none;
+    padding: 5px 12px 5px 12px;
+    font-weight: bold;
+    cursor: pointer;
+    behavior: url('../Scripts/PIE.htc');
+    margin-right: 20px;
+}
+
+.modalBackground {
+    background-color: Gray;
+    filter: alpha(opacity=50);
+    opacity: 0.50;
+    z-index: 10001 !important;
+}
+
+.updateProgress {
+    border-width: 1px;
+    border-style: solid;
+    background-color: #FFFFFF;
+    position: absolute;
+    width: 180px;
+    height: 65px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: black;
+    z-index: 99;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+    -moz-opacity: 0.8;
+    min-height: 100%;
+    width: 100%;
+}
+
+.loading {
+    font-family: Calibri;
+    font-size: 10pt;
+    border: 5px solid #67CFF5;
+    width: 200px;
+    height: 100px;
+    display: none;
+    position: fixed;
+    background-color: White;
+    z-index: 999;
+}

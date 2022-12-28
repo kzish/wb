@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Q4UhEy5x2QCQtqvVYsDNa7X158HONWDn10tVhUxIM6g=",
+  "Hash": "dy3GmY/xU1M29YJ3wBD9TyiVFxV8qefX63/ZiYuwL20=",
   "Source": "nedBank",
   "BasePath": "_content/nedBank",
   "Mode": "Default",
@@ -578,23 +578,6 @@
       "OriginalItemSpec": "wwwroot\\assets\\js\\solid.js"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\css\\style.css",
-      "SourceId": "nedBank",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
-      "BasePath": "_content/nedBank",
-      "RelativePath": "css/style.css",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\css\\style.css"
-    },
-    {
       "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\css\\styles.726752a2f57b2a70b961.css",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
@@ -680,12 +663,12 @@
       "OriginalItemSpec": "wwwroot\\img\\NedbankIcon.svg"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\img\\NedbankLogin.svg",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\main-es2015.1ac8334f3f2e36f35a9d.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "img/NedbankLogin.svg",
+      "RelativePath": "js/main-es2015.1ac8334f3f2e36f35a9d.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -694,15 +677,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\img\\NedbankLogin.svg"
+      "OriginalItemSpec": "wwwroot\\js\\main-es2015.1ac8334f3f2e36f35a9d.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\main-es5.1ac8334f3f2e36f35a9d.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/js",
+      "RelativePath": "js/main-es5.1ac8334f3f2e36f35a9d.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -711,15 +694,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\js"
+      "OriginalItemSpec": "wwwroot\\js\\main-es5.1ac8334f3f2e36f35a9d.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\main-es2015.1ac8334f3f2e36f35a9d.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\maintenance.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/main-es2015.1ac8334f3f2e36f35a9d.js",
+      "RelativePath": "js/maintenance.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -728,15 +711,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\main-es2015.1ac8334f3f2e36f35a9d.js"
+      "OriginalItemSpec": "wwwroot\\js\\maintenance.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\main-es5.1ac8334f3f2e36f35a9d.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\polyfills-es2015.408dd8e21879c43521f3.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/main-es5.1ac8334f3f2e36f35a9d.js",
+      "RelativePath": "js/polyfills-es2015.408dd8e21879c43521f3.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -745,15 +728,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\main-es5.1ac8334f3f2e36f35a9d.js"
+      "OriginalItemSpec": "wwwroot\\js\\polyfills-es2015.408dd8e21879c43521f3.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\maintenance.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\polyfills-es5.d31dd2b59d024052c61c.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/maintenance.js",
+      "RelativePath": "js/polyfills-es5.d31dd2b59d024052c61c.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -762,15 +745,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\maintenance.js"
+      "OriginalItemSpec": "wwwroot\\js\\polyfills-es5.d31dd2b59d024052c61c.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\polyfills-es2015.408dd8e21879c43521f3.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\runtime-es2015.199d073716fa2391c1f0.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/polyfills-es2015.408dd8e21879c43521f3.js",
+      "RelativePath": "js/runtime-es2015.199d073716fa2391c1f0.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -779,15 +762,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\polyfills-es2015.408dd8e21879c43521f3.js"
+      "OriginalItemSpec": "wwwroot\\js\\runtime-es2015.199d073716fa2391c1f0.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\polyfills-es5.d31dd2b59d024052c61c.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\runtime-es5.199d073716fa2391c1f0.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/polyfills-es5.d31dd2b59d024052c61c.js",
+      "RelativePath": "js/runtime-es5.199d073716fa2391c1f0.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -796,15 +779,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\polyfills-es5.d31dd2b59d024052c61c.js"
+      "OriginalItemSpec": "wwwroot\\js\\runtime-es5.199d073716fa2391c1f0.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\runtime-es2015.199d073716fa2391c1f0.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\ruxitagentjs_ICA2NVfgjqru_10249220905100923.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/runtime-es2015.199d073716fa2391c1f0.js",
+      "RelativePath": "js/ruxitagentjs_ICA2NVfgjqru_10249220905100923.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -813,15 +796,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\runtime-es2015.199d073716fa2391c1f0.js"
+      "OriginalItemSpec": "wwwroot\\js\\ruxitagentjs_ICA2NVfgjqru_10249220905100923.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\runtime-es5.199d073716fa2391c1f0.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\scripts.bafe01d1da56d09fd08f.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/runtime-es5.199d073716fa2391c1f0.js",
+      "RelativePath": "js/scripts.bafe01d1da56d09fd08f.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -830,15 +813,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\runtime-es5.199d073716fa2391c1f0.js"
+      "OriginalItemSpec": "wwwroot\\js\\scripts.bafe01d1da56d09fd08f.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\ruxitagentjs_ICA2NVfgjqru_10249220905100923.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\vendor-es2015.3e3b9d2f0015bc09ee51.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/ruxitagentjs_ICA2NVfgjqru_10249220905100923.js",
+      "RelativePath": "js/vendor-es2015.3e3b9d2f0015bc09ee51.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -847,15 +830,15 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\ruxitagentjs_ICA2NVfgjqru_10249220905100923.js"
+      "OriginalItemSpec": "wwwroot\\js\\vendor-es2015.3e3b9d2f0015bc09ee51.js.download"
     },
     {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\scripts.bafe01d1da56d09fd08f.js",
+      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\vendor-es5.3e3b9d2f0015bc09ee51.js.download",
       "SourceId": "nedBank",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
       "BasePath": "_content/nedBank",
-      "RelativePath": "js/scripts.bafe01d1da56d09fd08f.js",
+      "RelativePath": "js/vendor-es5.3e3b9d2f0015bc09ee51.js.download",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -864,41 +847,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\scripts.bafe01d1da56d09fd08f.js"
-    },
-    {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\vendor-es2015.3e3b9d2f0015bc09ee51.js",
-      "SourceId": "nedBank",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
-      "BasePath": "_content/nedBank",
-      "RelativePath": "js/vendor-es2015.3e3b9d2f0015bc09ee51.js",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\vendor-es2015.3e3b9d2f0015bc09ee51.js"
-    },
-    {
-      "Identity": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\vendor-es5.3e3b9d2f0015bc09ee51.js",
-      "SourceId": "nedBank",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\",
-      "BasePath": "_content/nedBank",
-      "RelativePath": "js/vendor-es5.3e3b9d2f0015bc09ee51.js",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\vendor-es5.3e3b9d2f0015bc09ee51.js"
+      "OriginalItemSpec": "wwwroot\\js\\vendor-es5.3e3b9d2f0015bc09ee51.js.download"
     },
     {
       "Identity": "C:\\Users\\samaritan\\.nuget\\packages\\microsoft.aspnetcore.identity.ui\\5.0.13\\staticwebassets\\V4\\css\\site.css",

@@ -1,0 +1,213 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\obj\\Release\\net6.0\\scopedcss\\projectbundle\\nedBank.bundle.scp.css",
+      "PackagePath": "staticwebassets\\nedBank.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\bootstrap-materia.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap-materia.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\bootstrap.cerulean.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.cerulean.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\bootstrap.simplex.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.simplex.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\cust_style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\cust_style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\font-awesome.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\font-awesome.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\jquery.mCustomScrollbar.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\jquery.mCustomScrollbar.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\main_style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\main_style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\pagination.css",
+      "PackagePath": "staticwebassets\\assets\\css\\pagination.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\css\\style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\_h_city_1.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\_h_city_1.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\_loading.gif",
+      "PackagePath": "staticwebassets\\assets\\img\\_loading.gif"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\bg_login - Copy (2).jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login - Copy (2).jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\bg_login - Copy.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login - Copy.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\bg_login.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\fuel_icon.png",
+      "PackagePath": "staticwebassets\\assets\\img\\fuel_icon.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\h_city_1 - Copy.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\h_city_1 - Copy.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\h_city_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\h_city_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\loader.gif",
+      "PackagePath": "staticwebassets\\assets\\img\\loader.gif"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\logo.jpeg",
+      "PackagePath": "staticwebassets\\assets\\img\\logo.jpeg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\place-holder-profile-image.png",
+      "PackagePath": "staticwebassets\\assets\\img\\place-holder-profile-image.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\profile_place_holder.png",
+      "PackagePath": "staticwebassets\\assets\\img\\profile_place_holder.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\rubiem_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\rubiem_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\img\\speedlink_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\speedlink_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\js\\bootstrap.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\bootstrap.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\js\\fontawesome.js",
+      "PackagePath": "staticwebassets\\assets\\js\\fontawesome.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\js\\jquery-3.4.1.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery-3.4.1.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\js\\jquery.mCustomScrollbar.concat.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery.mCustomScrollbar.concat.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\js\\jquery.validate.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery.validate.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\js\\popper.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\popper.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\assets\\js\\solid.js",
+      "PackagePath": "staticwebassets\\assets\\js\\solid.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\css\\styles.726752a2f57b2a70b961.css",
+      "PackagePath": "staticwebassets\\css\\styles.726752a2f57b2a70b961.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\img\\NedbankIcon.svg",
+      "PackagePath": "staticwebassets\\img\\NedbankIcon.svg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\img\\login-easy.svg",
+      "PackagePath": "staticwebassets\\img\\login-easy.svg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\img\\login-fast.svg",
+      "PackagePath": "staticwebassets\\img\\login-fast.svg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\img\\login-secure.svg",
+      "PackagePath": "staticwebassets\\img\\login-secure.svg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\main-es2015.1ac8334f3f2e36f35a9d.js.download",
+      "PackagePath": "staticwebassets\\js\\main-es2015.1ac8334f3f2e36f35a9d.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\main-es5.1ac8334f3f2e36f35a9d.js.download",
+      "PackagePath": "staticwebassets\\js\\main-es5.1ac8334f3f2e36f35a9d.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\maintenance.js.download",
+      "PackagePath": "staticwebassets\\js\\maintenance.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\polyfills-es2015.408dd8e21879c43521f3.js.download",
+      "PackagePath": "staticwebassets\\js\\polyfills-es2015.408dd8e21879c43521f3.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\polyfills-es5.d31dd2b59d024052c61c.js.download",
+      "PackagePath": "staticwebassets\\js\\polyfills-es5.d31dd2b59d024052c61c.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\runtime-es2015.199d073716fa2391c1f0.js.download",
+      "PackagePath": "staticwebassets\\js\\runtime-es2015.199d073716fa2391c1f0.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\runtime-es5.199d073716fa2391c1f0.js.download",
+      "PackagePath": "staticwebassets\\js\\runtime-es5.199d073716fa2391c1f0.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\ruxitagentjs_ICA2NVfgjqru_10249220905100923.js.download",
+      "PackagePath": "staticwebassets\\js\\ruxitagentjs_ICA2NVfgjqru_10249220905100923.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\scripts.bafe01d1da56d09fd08f.js.download",
+      "PackagePath": "staticwebassets\\js\\scripts.bafe01d1da56d09fd08f.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\vendor-es2015.3e3b9d2f0015bc09ee51.js.download",
+      "PackagePath": "staticwebassets\\js\\vendor-es2015.3e3b9d2f0015bc09ee51.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\nedBank\\wwwroot\\js\\vendor-es5.3e3b9d2f0015bc09ee51.js.download",
+      "PackagePath": "staticwebassets\\js\\vendor-es5.3e3b9d2f0015bc09ee51.js.download"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.build.nedBank.props",
+      "PackagePath": "build\\nedBank.props"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.buildMultiTargeting.nedBank.props",
+      "PackagePath": "buildMultiTargeting\\nedBank.props"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.buildTransitive.nedBank.props",
+      "PackagePath": "buildTransitive\\nedBank.props"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.nedBank.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

@@ -31,7 +31,8 @@ namespace SharedModels
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql("server=localhost;uid=root;pwd=abc123!;database=standard_bank;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
+                optionsBuilder.UseMySql("server=localhost;uid=root;database=standard_bank;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
+                //optionsBuilder.UseMySql("server=localhost;uid=root;pwd=abc123!;database=standard_bank;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
             }
         }
 
