@@ -1,0 +1,186 @@
+var RootPoller = {
+
+    id: "",
+
+    options: {
+        interval: 3000,
+        pollMenu: false,
+        pollUi: false,
+        pollSubTitle: false,
+        pollSession: false,
+        pollVoip :false,
+        voipUIPollerInterval : 3000
+    },
+
+    /** Poll Menu **/
+    _pollMenuResponseHandler: function () {
+        try {
+            var response = JSON.parse(this.responseText);
+
+            if (response.menuHTML !== '') {
+                var menu = document.getElementById("menu");
+
+                if (menu !== null) {
+                    var hamburger = document.getElementById("content-overlay");
+                    var tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = response.menuHTML;
+
+                    if (hamburger.classList.contains("hamburger-mode")) {
+                        Hamburger.toggle();
+                    }
+
+                    var Node = tempDiv.children[0];
+                    menu.parentNode.replaceChild(Node, menu);
+                } else {
+                    console.log("Could not update menu...Could not find node");
+                }
+
+            } else {
+                console.log("Could not update menu...No new menu data");
+            }
+
+        } catch (Exception) {
+            console.log("No Menu Update...");
+        }
+    },
+
+    _pollMenu: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/partialMenuAsync");
+        xhr.onload = RootPoller._pollMenuResponseHandler.bind(xhr);
+        xhr.send();
+    },
+    /** End of: Poll Menu **/
+
+    /** Poll UI **/
+    _pollUiResponseHandler: function () {
+        if(this.responseText != null  && this.responseText.charAt(0) != "<"){
+            var response = JSON.parse(this.responseText);
+            if (response.uiPushed) {
+                RootPoller.options.pollUi = false;
+                Form.navigate("/banking/navigate?_u=" + response.uiid + "&_p=" + response.parent);
+            }
+        }
+    },
+
+    _pollUi: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/pollUi");
+        xhr.onload = RootPoller._pollUiResponseHandler.bind(xhr);
+        xhr.addEventListener("error", function (e) {
+           console.log("PollUi error");
+        });
+        xhr.send();
+    },
+    /** End of: Poll UI **/
+
+    /** Poll Sub Title **/
+    _subTitlePollerResponseHandler: function () {
+        try {
+            var response = JSON.parse(this.responseText);
+
+            if (response.subTitleEvent != null) {
+                var subTitle = document.getElementsByClassName("headerSubtitle");
+                subTitle[0].innerText = response.subTitleEvent.text;
+                setTimeout(function () {
+                    var defaultValue = subTitle[0].getAttribute("data-default");
+                    subTitle[0].innerText = defaultValue;
+                }, response.subTitleEvent.showFor);
+            }
+
+            if (response.subTitleDefault != null) {
+                var subTitle = document.getElementsByClassName("headerSubtitle");
+                subTitle[0].innerText = response.subTitleDefault.text;
+            }
+        }
+        catch (exception) {
+            console.log("exception :" + exception.toString());
+        }
+
+    },
+
+    _pollSubTitle: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/pollSubTitle");
+        xhr.onload = RootPoller._subTitlePollerResponseHandler.bind(xhr);
+        xhr.send();
+    },
+
+    /** Poll Session Timeout **/
+    _sessionTimeOut: function () {
+        try {
+            var response = JSON.parse(this.responseText);
+
+            if(response.sessionTimeOut != null && response.sessionTimeOut.toLowerCase() == "fail"){
+                RootPoller.options.pollSession = false;
+                RootPoller.options.pollUi = false;
+                RootPoller.options.pollSubTitle = false;
+                RootPoller.options.pollMenu = false;
+                RootPoller.options.voipUIPollerInterval = 3000;
+                RootPoller.options.pollVoip = false;
+                OnlinePoller.options.pollOnline = false;
+                Timers.clear();
+            }
+
+        }
+        catch (exception) {
+            console.log("Polling SessionTimeout error");
+        }
+
+    },
+    /** End of: Poll Session Timeout **/
+
+    _pollSessionTimeOut: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/pollSession");
+        xhr.onload = RootPoller._sessionTimeOut.bind(xhr);
+        xhr.send();
+    },
+
+    /** Start of: Poll of Voip **/
+    _pollVoip: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/pollVoip");
+        xhr.onload = RootPoller._pollVoipResponseHandler.bind(xhr);
+        xhr.send();
+    },
+    _pollVoipResponseHandler: function () {
+        try {
+            var response = JSON.parse(this.responseText);
+            if(response.hangupCall.voip == 'yes'){
+                Voip.hangup();
+            }
+        }
+        catch (exception) {
+            console.log("Could not update voip...No new voip data");
+        }
+    },
+
+    /** End of: Poll Voip **/
+    start: function () {
+        var timerId = setInterval(function () {
+            if(RootPoller.options.pollSession){
+                RootPoller._pollSessionTimeOut();
+            }
+            if (RootPoller.options.pollMenu) {
+                RootPoller._pollMenu();
+            }
+            if (RootPoller.options.pollSubTitle) {
+                RootPoller._pollSubTitle();
+            }
+            if(RootPoller.options.pollVoip){
+                RootPoller._pollVoip();
+            }
+        }, RootPoller.options.interval);
+
+        var uiPollerVoipEdit = setInterval(function () {
+            if (RootPoller.options.pollUi) {
+                RootPoller._pollUi();
+            }
+        },RootPoller.options.voipUIPollerInterval);
+        Timers.register(timerId);
+        RootPoller.id = timerId;
+        Timers.register(uiPollerVoipEdit);
+        RootPoller.id = uiPollerVoipEdit;
+    }
+};

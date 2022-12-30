@@ -1,0 +1,101 @@
+(function (window, document) {
+
+    'use strict';
+
+    var timer = null;
+
+    //pointer events respond for both touch and click
+    var mouseDown = "pointerdown";
+    var mouseOut = "pointerout";
+    var mouseUp = "pointerup";
+    var mouseMove = "pointermove";
+    var mouseMoveClear;
+
+    // wheel/scroll events
+    var mouseWheel = 'mousewheel';
+    var wheel = 'wheel';
+    var scrollEvent = 'scroll';
+
+    // patch CustomEvent to allow constructor creation (IE/Chrome) - resolved once initCustomEvent no longer exists
+    if ('initCustomEvent' in document.createEvent('CustomEvent')) {
+
+        window.CustomEvent = function(event, params) {
+
+            params = params || { bubbles: false, cancelable: false, detail: undefined };
+
+            var evt = document.createEvent('CustomEvent');
+            evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+            return evt;
+        };
+
+        window.CustomEvent.prototype = window.Event.prototype;
+    }
+
+    // listen to mousedown event on any child element of the body
+    document.addEventListener(mouseDown, function(e) {
+
+        var el = e.target;
+
+        // get delay from html attribute if it exists, otherwise default to 1500
+        var longPressDelayInMs = parseInt(el.getAttribute('data-long-press-delay') || '500', 10);
+
+        // clear if the mouse moves
+        mouseMoveClear = function(ev) {
+            //Even without position change pointerMove is still called. So check for changes in X Y of touches to make sure
+            if(e.clientX != ev.clientX && e.clientY != ev.clientY){
+                clearTimeout(timer);
+            }
+        };
+
+        document.addEventListener(mouseMove, mouseMoveClear);
+
+        // start the timer
+        timer = setTimeout(fireLongPressEvent.bind(el), longPressDelayInMs);
+
+    });
+
+    // clear the timeout if the user releases the mouse/touch
+    document.addEventListener(mouseUp, function(e) {
+        document.removeEventListener(mouseMove, mouseMoveClear);
+        clearTimeout(timer);
+    });
+
+    // clear the timeout if the user leaves the element
+    document.addEventListener(mouseOut, function(e) {
+        document.removeEventListener(mouseMove, mouseMoveClear);
+        clearTimeout(timer);
+    });
+
+    // clear if the Wheel event is fired in the element
+    document.addEventListener(mouseWheel, function(e){
+        document.removeEventListener(mouseMove, mouseMoveClear);
+        clearTimeout(timer);
+    });
+
+    // clear if the Scroll event is fired in the element
+    document.addEventListener(wheel, function(e){
+        document.removeEventListener(mouseMove, mouseMoveClear);
+        clearTimeout(timer);
+    });
+
+    // clear if the Scroll event is fired in the element
+    document.addEventListener(scrollEvent, function(e){
+        document.removeEventListener(mouseMove, mouseMoveClear);
+        clearTimeout(timer);
+    });
+
+    /**
+     * Fires the 'long-press' event on element
+     * @returns {void}
+     */
+    function fireLongPressEvent() {
+
+        // fire the long-press event
+        this.dispatchEvent(new CustomEvent('long-press', { bubbles: true, cancelable: true }));
+
+        clearTimeout(timer);
+
+        if (console && console.log) console.log('long-press fired on ' + this.outerHTML);
+    }
+
+}(this, document));

@@ -1,0 +1,83 @@
+var MMPoller = {
+
+    id: "",
+
+    options: {
+        interval: 3000
+    },
+
+    _pollSymbolResponseHandler: function () {
+        if (!MM._isUpdating) {
+            try {
+                var response = JSON.parse(this.responseText);
+
+                if (response.partialHelper != null) {
+
+                    if (MMPoller.id !== "") {
+                        Timers.clearOne(MMPoller.id);
+                        MMPoller.id = "";
+                    }
+
+                    setTimeout(function () {
+                        MMPoller._pollData()
+                    }, 100);
+
+                } else if (MMPoller.id === "") {
+                    var timerId = setInterval(function () {
+                        MMPoller._pollData()
+                    }, MMPoller.options.interval);
+                    Timers.register(timerId);
+                    MMPoller.id = timerId;
+                }
+
+                //Check if the update was intended for this screen
+                var panel = null;
+                if(response.partialHelper.panelId !== null){
+                    var panels = document.querySelectorAll("[data-panel='panelId']");
+                    panels.forEach(function (panelItem) {
+                        if(panelItem.value == response.partialHelper.panelId){
+                            panel = panelItem;
+                        }
+                    })
+                }
+                var dataParents = document.querySelectorAll("[data-parent='" + response.partialHelper.dataParent + "']");
+                if (dataParents.length > 0) {
+                    //Do Clear
+                    MM.partialUpdate_ClearHandler(panel,response.partialHelper.clears);
+                    //Do Delete
+                    MM.partialUpdate_DeleteHandler(panel,response.partialHelper.deletes);
+                    //Do Add
+                    MM.partialUpdate_AddHandler(panel,response.partialHelper.adds);
+                    //Do Update
+                    MM.partialUpdate_UpdateHandler(panel,response.partialHelper.updates);
+
+                    AttachEasyScroller(1000);
+                    Form._bindAnchorsForAjax();
+                    Quirks._setAbsolute(false);
+
+                    MM.init();
+                } else {
+                    console.log("Could not update...Data parent not found");
+                }
+            } catch (Exception) {
+                console.log("No Updates...");
+            }
+        }
+    },
+
+    _pollData: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/partialMMAsync");
+        xhr.onload = MMPoller._pollSymbolResponseHandler.bind(xhr);
+        xhr.send();
+    },
+
+    start: function () {
+        var timerId = setInterval(function () {
+            MMPoller._pollData()
+        }, MMPoller.options.interval);
+        Timers.register(timerId);
+        MMPoller.id = timerId;
+    }
+
+}

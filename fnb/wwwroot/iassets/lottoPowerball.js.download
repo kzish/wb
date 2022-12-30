@@ -1,0 +1,1125 @@
+var lotto_Powerball = {
+
+    checkIfLotto: function () {
+        var lottoSpinnerContainerList = document.querySelectorAll(".lottoSpinnerContainer");
+
+        //Check if lotto flow
+        if (lottoSpinnerContainerList.length <= 0) {
+            return;
+        }
+
+        //Set up multiple boards on start after that set up one board at a time
+        if (lottoSpinnerContainerList[0].getAttribute("data-onload") == "true") {
+
+            lottoSpinnerContainerList[0].setAttribute("data-onload", "false");
+
+            for (var i = 0; i < lottoSpinnerContainerList.length; i++) {
+                lotto_Powerball.setUpLottoSpinnerAnimation(lottoSpinnerContainerList[i], lottoSpinnerContainerList);
+            }
+        } else {
+            //Set up board added from partial update
+            lotto_Powerball.setUpLottoSpinnerAnimation(lottoSpinnerContainerList[lottoSpinnerContainerList.length - 1], lottoSpinnerContainerList);
+        }
+    },
+
+    setUpLottoSpinnerAnimation: function (lottoSpinnerContainer, lottoSpinnerContainerList) {
+
+        //Disable touch during setup process
+        lottoSpinnerContainer.style.pointerEvents = "none";
+
+        //Static view setup
+        //No need to go further in the setup if only static elements
+        if (lotto_Powerball.checkForLottoStaticView(lottoSpinnerContainerList) == true) {
+            return;
+        }
+
+        //Dynamic view setup
+        //Saving copy of spinner and some contents for add new board
+
+        //Set text depending on whether shake functionality is available or not
+        var iOS = navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false;
+        if (iOS || (typeof window.DeviceMotionEvent == 'undefined')) {
+            lottoSpinnerContainer.querySelector(".lottoSpinText").innerText = "Select Spin to choose random numbers";
+        } else {
+            lottoSpinnerContainer.querySelector(".lottoSpinText").innerText = "Shake phone or select Spin to choose random numbers";
+        }
+
+        var lottoSpinner = lottoSpinnerContainer.querySelector(".lottoSpinner");
+        var pillButtonContainer = lottoSpinnerContainer.querySelector(".pillButtonContainerLottoSpinner");
+        var lottoSpinnerHeadingContainer = lottoSpinnerContainer.querySelector(".lottoSpinnerHeadingContainer");
+
+        lottoSpinnerContainer.pillButtonContainer = pillButtonContainer.cloneNode(true);
+        lottoSpinnerContainer.lottoSpinnerHeadingContainer = lottoSpinnerHeadingContainer.cloneNode(true);
+        lottoSpinnerContainer.boardLetters = ("abcdefghijklmnopqrstuvwxyz").split("");
+
+        //Based on the measurements of the symbol removals and additions need to happen in intervals of 12.5
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var maxLottoNumber = parseInt(lottoSpinnerContainer.getAttribute("data-maxLottoNumber"));
+        var interval = 12.5;
+        var numberOfSpinnerColoumns = lotto_Powerball.getNumberofSpinnerColumns();
+        var powerBallMax = 20;
+        var spinnerColumn;
+        var text;
+
+        //Setup touch events for animations
+        for (var i = 0; i < numberOfSpinnerColoumns; i++) {
+            spinnerColumn = lottoSpinnerContainer.querySelector(".lottoSpinnerContainerColoumn" + (i + 1));
+
+            //Keep top row out of sight with margin (UFF)
+            if (window.matchMedia("(min-width: 500px)").matches) {
+                spinnerColumn.children[0].style.marginTop = " calc(-12.5 * var(--maxUnitBase))";
+            } else {
+                spinnerColumn.children[0].style.marginTop = "calc(-12.5 * var(--unit))";
+            }
+
+            //Top two values per coloumn
+            spinnerColumn.children[0].innerHTML = (maxLottoNumber - 1);
+            spinnerColumn.children[1].innerHTML = maxLottoNumber;
+
+            //Different styling for each game
+            if (game == "POWERBALL") {
+                for (var iLoop = 0; iLoop < spinnerColumn.children.length; iLoop++) {
+                    text = spinnerColumn.children[iLoop].innerHTML;
+
+                    if (text != "X") {
+                        spinnerColumn.children[iLoop].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(text));
+                        //Last coloumn has diffrent styling
+                        if (i == (numberOfSpinnerColoumns - 1)) {
+                            spinnerColumn.children[iLoop].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(text), true);
+                            spinnerColumn.children[iLoop].style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(text), true);
+                            spinnerColumn.children[iLoop].style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+                            spinnerColumn.children[1].innerHTML = powerBallMax;
+                        }
+                    }
+
+                }
+            }
+
+            lotto_Powerball.setUpLottoTouchEventsForManualSpin(spinnerColumn, interval, (i + 1), lottoSpinnerContainer);
+        }
+
+        lottoSpinnerContainer.middleValueTracker = [];
+        lottoSpinnerContainer.lottoSpinner = lottoSpinner.cloneNode(true);
+
+        //Seting up previously selected values if any
+        if (lottoSpinnerContainer.getAttribute("data-values") != "" && lottoSpinnerContainer.getAttribute("data-editable") == "Y") {
+            lotto_Powerball.setUpLottoSelectedValues(numberOfSpinnerColoumns, spinnerColumn, lottoSpinnerContainer);
+        }
+
+        //Setup shake spin. attach only once
+        if (iOS == false || (typeof window.DeviceMotionEvent != 'undefined')) {
+            if (lottoSpinnerContainerList[0].getAttribute("data-shakeAttached") == "false") {
+                lottoSpinnerContainerList[0].setAttribute("data-shakeAttached", "true");
+                lotto_Powerball.setUpLottoShakeSpin(lottoSpinnerContainerList);
+            }
+        }
+
+        //Enable touch after setup process
+        lottoSpinnerContainer.style.pointerEvents = "auto";
+
+    },
+
+    setUpLottoTouchEventsForManualSpin: function (spinnerColumn, interval, animationId, lottoSpinnerContainer) {
+        var rootUnit = (Root.unit());
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var maxLottoNumber = lottoSpinnerContainer.getAttribute("data-maxLottoNumber");
+        var iOS = navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false;
+        var powerBallMax = 20;
+        var onTouchMoveHandler;
+        var onTouchEndHandler;
+        var numberOfSpinnerColoumns = lotto_Powerball.getNumberofSpinnerColumns();
+        spinnerColumn.finalPos = 0;
+
+        //Set up animation
+        spinnerColumn.addEventListener("pointerdown", function (ev) {
+
+            var y = ev.clientY;
+
+            //Remove X
+            lotto_Powerball.removeNullSpinnerValues(spinnerColumn, game, maxLottoNumber, powerBallMax, lottoSpinnerContainer, numberOfSpinnerColoumns);
+            //
+
+            onTouchMoveHandler = function (eve) {
+
+                //Prevent page scrolling when scrolling spinner
+                eve.preventDefault();
+
+                var yM = eve.clientY;
+
+                if ((yM < y))//Swiping upward
+                {
+                    y = yM;
+
+                    var currentPos = parseFloat(spinnerColumn.getAttribute("data-spinPos"));
+                    var moveUpPos = 1.25;
+                    var finalPos = currentPos - moveUpPos;
+                    var distanceForUpdate = parseFloat(spinnerColumn.getAttribute("data-distanceForUpdate")) - moveUpPos;
+                    spinnerColumn.setAttribute("data-spinPos", finalPos);
+                    spinnerColumn.setAttribute("data-distanceForUpdate", distanceForUpdate);
+
+                    //Animate (maxUnitBase is for UFF screen)
+                    if (window.matchMedia("(min-width: 500px)").matches) {
+                        spinnerColumn.style.transform = "translateY(calc(" + finalPos + " * var(--maxUnitBase))";
+                    } else {
+                        spinnerColumn.style.transform = "translateY(" + (rootUnit * finalPos) + "px)";
+                    }
+
+                    //Based on the measurements of the symbol removals and additions need to happen in intervals of 12.5
+                    if (distanceForUpdate == -interval) {
+                        spinnerColumn.setAttribute("data-distanceForUpdate", 0);
+                        var iOSToucEnd = lotto_Powerball.swipeLottoSpinnerUp(spinnerColumn, interval, lottoSpinnerContainer);
+                        spinnerColumn.setAttribute("data-middleValue", parseFloat(spinnerColumn.getAttribute("data-middleValue")) - interval);
+                    }
+
+                    spinnerColumn.finalPos = finalPos;
+
+                    //IOS touch event is removed when touched element is removed so we forcefully go through the necessary touch end flow
+                    //Chrome handles this fine and continues to fire events
+                    if (iOS) {
+                        if (iOSToucEnd == true) {
+                            lotto_Powerball.lottoDuplicateRemoval(spinnerColumn, animationId, interval, lottoSpinnerContainer);
+                        }
+                    }
+
+                } else {//Swiping downward
+                    y = yM;
+
+                    var currentPos = parseFloat(spinnerColumn.getAttribute("data-spinPos"));
+                    var moveUpPos = 1.25;
+                    var finalPos = currentPos + moveUpPos;
+                    var distanceForUpdate = parseFloat(spinnerColumn.getAttribute("data-distanceForUpdate")) + moveUpPos;
+                    spinnerColumn.setAttribute("data-spinPos", finalPos);
+                    spinnerColumn.setAttribute("data-distanceForUpdate", distanceForUpdate);
+
+                    //Animate (maxUnitBase is for UFF screen)
+                    if (window.matchMedia("(min-width: 500px)").matches) {
+                        spinnerColumn.style.transform = "translateY(calc(" + finalPos + " * var(--maxUnitBase))";
+                    } else {
+                        spinnerColumn.style.transform = "translateY(" + (rootUnit * finalPos) + "px)";
+                    }
+
+                    //Based on the measurements of the symbol removals and additions need to happen in intervals of 12.5
+                    if (distanceForUpdate == interval) {
+                        spinnerColumn.setAttribute("data-distanceForUpdate", 0);
+                        var iOSToucEnd = lotto_Powerball.swipeLottoSpinnerDown(spinnerColumn, interval, lottoSpinnerContainer);
+                        spinnerColumn.setAttribute("data-middleValue", parseFloat(spinnerColumn.getAttribute("data-middleValue")) + interval);
+                    }
+
+                    spinnerColumn.finalPos = finalPos;
+
+                    //IOS touch event is removed when touched element is removed so we forcefully go through the necessary touch end flow
+                    //Chrome handles this fine and continues to fire events
+                    if (iOS) {
+                        if (iOSToucEnd == true) {
+                            lotto_Powerball.lottoDuplicateRemoval(spinnerColumn, animationId, interval, lottoSpinnerContainer);
+                        }
+                    }
+                }
+            };
+
+            onTouchEndHandler = function (eve) {
+                var lastMiddleY = parseFloat(spinnerColumn.getAttribute("data-middleValue"));
+
+                ev.target.removeEventListener("pointermove", onTouchMoveHandler);
+                window.removeEventListener("pointerup", onTouchEndHandler);
+
+                spinnerColumn.setAttribute("data-distanceForUpdate", 0);
+
+                //Animate rest of spin if user stops in between
+                if (spinnerColumn.finalPos % interval != 0) {
+
+                    //Using middle Y value to animate spin to middle
+
+                    //Animate (maxUnitBase is for UFF screen)
+                    if (window.matchMedia("(min-width: 500px)").matches) {
+                        spinnerColumn.style.transform = "translateY(calc(" + lastMiddleY + " * var(--maxUnitBase))";
+                    } else {
+                        spinnerColumn.style.transform = "translateY(" + (rootUnit * lastMiddleY) + "px)";
+                    }
+
+                    spinnerColumn.finalPos = lastMiddleY;
+                    spinnerColumn.setAttribute("data-spinPos", lastMiddleY);
+                }
+
+                lotto_Powerball.lottoDuplicateRemoval(spinnerColumn, animationId, interval, lottoSpinnerContainer);
+            };
+
+            //Note: event listeners added in this way to stop touchmove events not firing if the element is removed
+            ev.target.addEventListener("pointermove", onTouchMoveHandler);
+            window.addEventListener("pointerup", onTouchEndHandler);
+            lottoSpinnerContainer.touchElement = ev.target;
+        });
+
+    },
+
+    setUpLottoSelectedValues: function (numberOfSpinnerColoumns, spinnerColumn, lottoSpinnerContainer) {
+        var singleBoardValues;
+        var midIndex;
+        var selectedValue;
+
+        singleBoardValues = lottoSpinnerContainer.getAttribute("data-values").split(",");
+
+        for (var iLoop2 = 0; iLoop2 < numberOfSpinnerColoumns; iLoop2++) {
+
+            spinnerColumn = lottoSpinnerContainer.querySelector(".lottoSpinnerContainerColoumn" + (iLoop2 + 1));
+            midIndex = (spinnerColumn.children.length - 1) / 2;
+            selectedValue = parseInt(singleBoardValues[iLoop2]);
+
+            spinnerColumn.children[midIndex].innerHTML = selectedValue;
+            spinnerColumn.children[midIndex].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(selectedValue);
+        }
+
+        lotto_Powerball.LottoSpinnerToBoard(lottoSpinnerContainer);
+    },
+
+    checkForLottoStaticView: function (lottoSpinnerContainerList) {
+
+        for (var i = 0; i < lottoSpinnerContainerList.length; i++) {
+
+            var lottoResultRowContainer = lottoSpinnerContainerList[i].querySelectorAll(".lottoResultRowContainer");
+            var powerBallRowContainer = lottoSpinnerContainerList[i].querySelectorAll(".powerBallRowContainer");
+
+            if (lottoResultRowContainer.length > 0) {
+                var className = ".lottoResultRow";
+                var bonusBallPosition = 6;
+
+                lotto_Powerball.setupLottoStaticView(lottoResultRowContainer, className, bonusBallPosition, lottoSpinnerContainerList[i]);
+
+            } else if (powerBallRowContainer.length > 0) {
+                var className = ".powerBallResultRow";
+                var bonusBallPosition = 5;
+
+                lotto_Powerball.setupLottoStaticView(powerBallRowContainer, className, bonusBallPosition, lottoSpinnerContainerList[i]);
+            }
+        }
+
+        //Check if there is only static views on the page
+        var spinners = document.querySelectorAll(".firstLottoContainer");
+
+        if (spinners.length <= 0) {
+            //No spinners on page
+            return true;
+        } else {
+            return false;
+        }
+
+    },
+
+    setupLottoStaticView: function (RowContainer, className, bonusBallPosition, lottoSpinnerContainer) {
+        var singleLottoResultContainer;
+        var values;
+        var lottoResultRow;
+
+        for (var iLoop = 0; iLoop < RowContainer.length; iLoop++) {
+
+            singleLottoResultContainer = RowContainer[iLoop];
+            values = singleLottoResultContainer.getAttribute("data-values").split(",");
+
+            for (var i = 0; i < values.length; i++) {
+                lottoResultRow = singleLottoResultContainer.querySelector(className + (i + 1));
+                lottoResultRow.innerHTML = values[i];
+                lottoResultRow.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(values[i]));
+
+                //Bonus/Powerball ball
+                if (i == bonusBallPosition) {
+                    lottoResultRow.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(values[i]), true);
+                    lottoResultRow.style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(values[i]), true);
+                    lottoResultRow.style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+                }
+            }
+        }
+    },
+
+    removeNullSpinnerValues: function (spinnerColumn, game, maxLottoNumber, powerBallMax, lottoSpinnerContainer, numberOfSpinnerColoumns) {
+        if (spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].innerHTML == "X") {
+
+            var standardValues = [(maxLottoNumber - 1), maxLottoNumber, 1, 2, 3];
+            //Standard values differ for powerball power column
+            if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn)) {
+                standardValues = [(powerBallMax - 1), powerBallMax, 1, 2, 3];
+            }
+
+            var lottoSpinner = lottoSpinnerContainer.querySelector(".lottoSpinner");
+            var doneBtn = lottoSpinnerContainer.querySelector(".pillButtonLottoSpinner");
+            var xCount = parseInt(lottoSpinner.getAttribute("data-xCount"));
+
+            for (var i = 0; i < spinnerColumn.children.length; i++) {
+                spinnerColumn.children[i].innerHTML = standardValues[i];
+            }
+            spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].innerHTML));
+
+            if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn)) {
+                spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].innerHTML), true);
+                spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].innerHTML), true);
+                spinnerColumn.children[(spinnerColumn.children.length - 1) / 2].style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+            }
+
+            //Once there are no null values(X's) enable done button
+            lottoSpinner.setAttribute("data-xCount", ++xCount);
+            if (xCount >= numberOfSpinnerColoumns) {
+                doneBtn.className = "pillButtonLottoSpinnerRightEnabled pillButtonLottoSpinner";
+                if (lottoSpinnerContainer.getAttribute("data-rightPillColour") != null || lottoSpinnerContainer.getAttribute("data-rightPillColour") != "") {
+                    //Getting css variable
+                    doneBtn.style.backgroundColor = getComputedStyle(document.body).getPropertyValue(lottoSpinnerContainer.getAttribute("data-rightPillColour"));
+                    doneBtn.style.borderColor = getComputedStyle(document.body).getPropertyValue(lottoSpinnerContainer.getAttribute("data-rightPillColour"));
+                }
+            }
+        }
+    },
+
+    setUpLottoShakeSpin: function (lottoSpinnerContainerList) {
+        var iOS = navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false;
+        if (iOS) {//Safari
+            return;
+        } else {
+            lotto_Powerball.attachLottoShakeEvent(lottoSpinnerContainerList);
+        }
+    },
+
+    setUpLottoShakeSpinForIOS: function () {
+        //Setup only needs to happen once
+        document.querySelector(".lottoSpinnerContainer").onclick = "";
+
+        //note DeviceMotionEvent only works when on a secure site (won't work on local)
+        //Safari requires request permission. Request permission is undefined in other browsers
+        //Safari also only allows permission to be requested off of a user gesture (this is fired off a click)
+
+        if (typeof DeviceMotionEvent.requestPermission != "undefined") {//Safari
+
+            DeviceMotionEvent.requestPermission().then(function (response) {
+                if (response === 'granted') {
+                    lotto_Powerball.attachLottoShakeEvent();
+                }
+            }).catch();
+        }
+    },
+
+    attachLottoShakeEvent: function (lottoSpinnerContainerList) {
+
+        //note DeviceMotionEvent only works when on a secure site (won't work on local)
+        if (typeof window.DeviceMotionEvent != 'undefined') {//Other browsers
+            var totalAnimationTime = 6000;
+
+            // Shake sensitivity
+            var sensitivity = 15;
+
+            // Position variables
+            var x1 = 0, x2 = 0;
+
+            //Update position
+            window.addEventListener('devicemotion', function (e) {
+                x1 = e.accelerationIncludingGravity.x;
+            }, false);
+
+            //Run auto spin if difference is greater than sensitivity
+            //Only need one timer regardless of how many spinners on screen so we attach to first element
+            lottoSpinnerContainerList[0].shakeTimerHandler = function () {
+                var lottoSpinnerContainerList = document.querySelectorAll(".lottoSpinnerContainer");
+                var change = x1 - x2;
+
+                if (change > sensitivity) {
+                    //Clear timer during animation
+                    clearInterval(lottoSpinnerContainerList[0].shakeTimer);
+
+                    for (var i = 0; i < lottoSpinnerContainerList.length; i++) {
+                        lotto_Powerball.autoSpinLotto(lottoSpinnerContainerList[i]);
+                    }
+
+                    //Add back timer after animation
+                    setTimeout(function () {
+                        lottoSpinnerContainerList[0].shakeTimer = setInterval(lottoSpinnerContainerList[0].shakeTimerHandler, 150);
+                    }, totalAnimationTime);
+
+                }
+
+                // Update position
+                x2 = x1;
+            };
+
+            lottoSpinnerContainerList[0].shakeTimer = setInterval(lottoSpinnerContainerList[0].shakeTimerHandler, 150);
+        }
+    },
+
+    getNumberofSpinnerColumns: function () {
+        var lottoSpinnerContainer = document.querySelector(".lottoSpinnerContainer");
+
+        if (lottoSpinnerContainer.getAttribute("data-game") == "DAILY_LOTTO") {
+            return 5;
+        } else {
+            return 6;
+        }
+
+    },
+
+    lottoCheckForDuplicates: function (middleValues, animationId, game) {
+        var numberOfSpinnerColoumns = lotto_Powerball.getNumberofSpinnerColumns();
+
+        //Do not compare with own value or last value if powerball
+
+        for (var i = 0; i < middleValues.length; i++) {
+
+            if (i == animationId) {
+                continue;
+            } else if ((game == "POWERBALL") && (i == (numberOfSpinnerColoumns - 1))) {
+                continue;
+            } else if (middleValues[i] == middleValues[animationId]) {
+                return true;
+            }
+
+        }
+        return false;
+    },
+
+    lottoDuplicateRemoval: function (spinnerColumn, animationId, interval, lottoSpinnerContainer) {
+        var rootUnit = (Root.unit());
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var lastMiddleY = parseFloat(spinnerColumn.getAttribute("data-middleValue"));
+        var arrayAnimationId = animationId - 1;
+
+        //Disable touch during duplicate removal
+        lottoSpinnerContainer.style.pointerEvents = "none";
+
+        lottoSpinnerContainer.middleValueTracker[arrayAnimationId] = spinnerColumn.children[2].innerHTML;
+
+        //For powerball the power number can be a duplicate
+        if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn) == false) {
+
+            while (lotto_Powerball.lottoCheckForDuplicates(lottoSpinnerContainer.middleValueTracker, arrayAnimationId, game) == true) {
+
+                lastMiddleY = spinnerColumn.finalPos - interval;
+
+                //Animate (UFF)
+                if (window.matchMedia("(min-width: 500px)").matches) {
+                    spinnerColumn.style.transform = "translateY(calc(" + lastMiddleY + " * var(--maxUnitBase))";
+                } else {
+                    spinnerColumn.style.transform = "translateY(" + (rootUnit * lastMiddleY) + "px)";
+                }
+
+                lotto_Powerball.swipeLottoSpinnerUp(spinnerColumn, interval, lottoSpinnerContainer);
+                spinnerColumn.setAttribute("data-middleValue", parseFloat(lastMiddleY));
+                spinnerColumn.finalPos = lastMiddleY;
+                spinnerColumn.setAttribute("data-spinPos", lastMiddleY);
+
+                //Insert new middle value
+                lottoSpinnerContainer.middleValueTracker[arrayAnimationId] = spinnerColumn.children[2].innerHTML;
+            }
+
+        }
+
+        //Enable touch after duplicate removal
+        lottoSpinnerContainer.style.pointerEvents = "auto";
+    },
+
+    checkPowerballLastColumn: function (game, spinnerColumn) {
+        if (game == "POWERBALL") {
+            if (spinnerColumn.className == "lottoSpinnerContainerColoumn6") {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    swipeLottoSpinnerUp: function (spinnerColumn, interval, lottoSpinnerContainer) {
+        //Swiping up
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var min = 1;
+        var max = parseInt(lottoSpinnerContainer.getAttribute("data-maxLottoNumber"));
+        var powerBallMax = 20;
+
+        //for UFF screens
+        var screenUnit = "--unit";
+        if (window.matchMedia("(min-width: 500px)").matches) {
+            screenUnit = "--maxUnitBase";
+        }
+
+        if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn)) {
+            max = powerBallMax;
+        }
+
+        //5 balls on screen per column (2 hidden 3 visible)
+        var numberOfBalls = 5;
+
+        //Remove a number ball from the top of spinner
+        var iOSTouchEnd = false;
+        if (lottoSpinnerContainer.touchElement == spinnerColumn.children[0]) {
+            iOSTouchEnd = true;
+        }
+        spinnerColumn.removeChild(spinnerColumn.children[0]);
+
+        //Add new number ball to bottom of spinner
+        var element = document.createElement('div');
+        element.className = "lottoSpinnerRow";
+
+        element.innerHTML = parseInt(spinnerColumn.children[spinnerColumn.children.length - 1].innerHTML) + 1;
+        var ballNumber = parseInt(element.innerHTML);
+
+        if (ballNumber > max) {
+            element.innerHTML = min;
+            ballNumber = min;
+        }
+
+        element.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber);
+
+        //Last coloumn of balls are all filled in for powerball
+        if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn)) {
+            element.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber, true);
+            element.style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber, true);
+            element.style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+        }
+
+        //Handles change of direction swipe by keeping track of and adjusting grid row and margin top attributes of last/first element per spinner column
+        var addAtGrid = parseInt(window.getComputedStyle(spinnerColumn.children[spinnerColumn.children.length - 1]).gridRow) + 1;
+        var marginTopMultiplier = parseInt(spinnerColumn.getAttribute("data-marginTopMultiplier"));
+        var bottomElement = spinnerColumn.children[spinnerColumn.children.length - 1].style.marginTop;
+
+        if (bottomElement != "") {
+
+            var marginOfBottomElement = parseFloat(bottomElement.replace(" * var(" + screenUnit + "))", "").replace("calc(-", ""));
+
+            if ((marginOfBottomElement - interval) > 0) {
+                element.style.gridRow = 1;
+                element.style.marginTop = "calc(" + -((marginOfBottomElement - interval)) + " * var(" + screenUnit + "))";
+
+                if (marginTopMultiplier > 1) {
+                    spinnerColumn.setAttribute("data-marginTopMultiplier", --marginTopMultiplier);
+                }
+
+            } else {
+                if (addAtGrid == 2) {
+                    if (spinnerColumn.children[spinnerColumn.children.length - 1].style.marginTop == "calc(-12.5 * var(" + screenUnit + "))") {
+                        addAtGrid = 1;
+                    }
+                }
+                element.style.gridRow = addAtGrid;
+                if (marginTopMultiplier > 1) {
+                    spinnerColumn.setAttribute("data-marginTopMultiplier", --marginTopMultiplier);
+                }
+            }
+        } else {
+            element.style.gridRow = addAtGrid;
+            if (marginTopMultiplier > 1) {
+                spinnerColumn.setAttribute("data-marginTopMultiplier", --marginTopMultiplier);
+            }
+        }
+
+        spinnerColumn.appendChild(element);
+        return iOSTouchEnd;
+    },
+
+    swipeLottoSpinnerDown: function (spinnerColumn, interval, lottoSpinnerContainer) {
+        //Swiping down
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var min = 1;
+        var max = parseInt(lottoSpinnerContainer.getAttribute("data-maxLottoNumber"));
+        var powerBallMax = 20;
+
+        //for UFF screens
+        var screenUnit = "--unit";
+        if (window.matchMedia("(min-width: 500px)").matches) {
+            screenUnit = "--maxUnitBase";
+        }
+
+        if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn)) {
+            max = powerBallMax;
+        }
+
+        //Remove a number ball from the bottom of spinner
+        var iOSTouchEnd = false;
+        if (lottoSpinnerContainer.touchElement == spinnerColumn.children[spinnerColumn.children.length - 1]) {
+            iOSTouchEnd = true;
+        }
+        spinnerColumn.removeChild(spinnerColumn.children[spinnerColumn.children.length - 1]);
+
+        //Add new number ball to top of spinner
+        var element = document.createElement('div');
+        element.className = "lottoSpinnerRow";
+
+        element.innerHTML = parseInt(spinnerColumn.children[0].innerHTML) - 1;
+        var ballNumber = parseInt(element.innerHTML);
+
+        if (ballNumber < min) {
+            element.innerHTML = max;
+            ballNumber = max;
+        }
+
+        element.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber);
+        //Last coloumn of balls are all filled in for powerball
+        if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn)) {
+            element.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber, true);
+            element.style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber, true);
+            element.style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+        }
+
+        //Handles change of direction swipe by keeping track of and adjusting grid row and margin top attributes of last/first element per spinner column
+        var addAtGrid = parseInt(window.getComputedStyle(spinnerColumn.children[0]).gridRow) - 1;
+        var marginTopMultiplier = parseInt(spinnerColumn.getAttribute("data-marginTopMultiplier"));
+
+        if (addAtGrid > 0) {
+            element.style.gridRow = addAtGrid;
+
+            if (marginTopMultiplier > 1) {
+                spinnerColumn.setAttribute("data-marginTopMultiplier", --marginTopMultiplier);
+            }
+
+        } else {
+            element.style.gridRow = 1;
+
+            //1st element on load has a margin value already set (handle case and move multiplier up)
+            if (spinnerColumn.children[0].style.marginTop == "calc(-12.5 * var(" + screenUnit + "))" && marginTopMultiplier == 1) {
+
+                spinnerColumn.setAttribute("data-marginTopMultiplier", ++marginTopMultiplier);
+                element.style.marginTop = "calc(" + -(interval * marginTopMultiplier) + " * var(" + screenUnit + "))";
+                spinnerColumn.setAttribute("data-marginTopMultiplier", ++marginTopMultiplier);
+
+            } else {
+                element.style.marginTop = "calc(" + -(interval * marginTopMultiplier) + " * var(" + screenUnit + "))";
+                if ((interval * marginTopMultiplier) != interval) {
+                    spinnerColumn.setAttribute("data-marginTopMultiplier", ++marginTopMultiplier);
+                }
+            }
+        }
+
+        spinnerColumn.insertBefore(element, spinnerColumn.children[0]);
+        return iOSTouchEnd;
+    },
+
+    determineLottoSpinnerColour: function (ballNumber, lastRow) {
+        var colour = "";
+        var lottoSpinnerContainer = document.querySelector(".lottoSpinnerContainer");
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+
+        if (game === "POWERBALL") {
+            if (typeof lastRow == "undefined") {
+                return colour = "#DDDDDD";
+            } else {
+                return colour = "#3EB5E7";
+            }
+        }
+
+        if (game == "DAILY_LOTTO") {
+            return colour = "#FFE718";
+        }
+
+        if ((ballNumber >= 1) && (ballNumber <= 13)) {
+            colour = "#B9282E";
+        } else if ((ballNumber >= 14) && (ballNumber <= 25)) {
+            colour = "#FAE045";
+        } else if ((ballNumber >= 26) && (ballNumber <= 37)) {
+            colour = "#00AE42";
+        } else if ((ballNumber >= 38) && (ballNumber <= lottoSpinnerContainer.getAttribute("data-maxLottoNumber"))) {
+            colour = "#3EB5E7";
+        } else {
+            colour = "#3EB5E7";
+        }
+
+        return colour;
+    },
+
+    autoSpinLotto: function (el) {
+        var lottoSpinnerContainer;
+
+        if (el.className != "lottoSpinnerContainer") {
+            lottoSpinnerContainer = el.parentElement.parentElement.parentElement;
+        } else {
+            lottoSpinnerContainer = el;
+        }
+
+        //Can only spin expanded elements
+        if (lottoSpinnerContainer.querySelector(".lottoSpinner") == null) {
+            return;
+        }
+
+        //disable click
+        var totalAnimationTime = 6000;
+        var spintBtn = lottoSpinnerContainer.querySelector(".pillButtonLottoSpinnerLeft");
+        var doneBtn = lottoSpinnerContainer.querySelector(".pillButtonLottoSpinner");
+        var lottoSpinner = lottoSpinnerContainer.querySelector(".lottoSpinner");
+
+        //Based on the measurements of the symbol removals and additions need to happen in intervals of 12.5
+        var interval = 12.5;
+        var numberOfSpinnerColoumns = lotto_Powerball.getNumberofSpinnerColumns();
+        var spinnerColumn;
+        var numberOfSpins = [5, 10, 15, 20, 25, 30];
+
+        spintBtn.style.pointerEvents = "none";
+        lottoSpinner.style.pointerEvents = "none";
+        doneBtn.style.borderColor = "";
+        doneBtn.style.backgroundColor = "";
+        doneBtn.className = "pillButtonLottoSpinnerRightDisabled pillButtonLottoSpinner";
+
+        setTimeout(function () {
+            //Check for and remove duplicates at end of animation
+            for (var i = 0; i < numberOfSpinnerColoumns; i++) {
+                spinnerColumn = lottoSpinnerContainer.querySelector(".lottoSpinnerContainerColoumn" + (i + 1));
+                lottoSpinnerContainer.middleValueTracker[i] = spinnerColumn.children[2].innerHTML;
+            }
+            for (var i = 0; i < numberOfSpinnerColoumns; i++) {
+                spinnerColumn = lottoSpinnerContainer.querySelector(".lottoSpinnerContainerColoumn" + (i + 1));
+                lotto_Powerball.lottoDuplicateRemoval(spinnerColumn, (i + 1), interval, lottoSpinnerContainer);
+            }
+
+            //enable click once animation complete
+            spintBtn.style.pointerEvents = "auto";
+            lottoSpinner.style.pointerEvents = "auto";
+            doneBtn.className = "pillButtonLottoSpinnerRightEnabled pillButtonLottoSpinner";
+            if (lottoSpinnerContainer.getAttribute("data-rightPillColour") != null || lottoSpinnerContainer.getAttribute("data-rightPillColour") != "") {
+                //Getting css variable
+                doneBtn.style.backgroundColor = getComputedStyle(document.body).getPropertyValue(lottoSpinnerContainer.getAttribute("data-rightPillColour"));
+                doneBtn.style.borderColor = getComputedStyle(document.body).getPropertyValue(lottoSpinnerContainer.getAttribute("data-rightPillColour"));
+            }
+
+        }, totalAnimationTime);
+
+        for (var i = 0; i < numberOfSpinnerColoumns; i++) {
+            spinnerColumn = lottoSpinnerContainer.querySelector(".lottoSpinnerContainerColoumn" + (i + 1));
+
+            spinnerColumn.setAttribute("data-animateId", 1);
+            lotto_Powerball.autoSpinLottoSetAutoSpinPos(spinnerColumn, (i + 1), interval, lottoSpinnerContainer);
+            lotto_Powerball.autoSpinRandomiseSpinner(spinnerColumn, lottoSpinnerContainer);
+            lotto_Powerball.autoSpinLottoBeginAnimationTiming(spinnerColumn, interval, numberOfSpins[i], lottoSpinnerContainer);
+        }
+
+    },
+
+    autoSpinLottoSetAutoSpinPos: function (spinnerColumn, animationId, interval, lottoSpinnerContainer) {
+        var rootUnit = (Root.unit());
+        var currentPos = parseFloat(spinnerColumn.getAttribute("data-spinPos"));
+
+        //Getting symbol to starting position before doing auto spin
+        if (currentPos != 0) {
+
+            while (spinnerColumn.finalPos != 0) {
+
+                currentPos = parseFloat(spinnerColumn.getAttribute("data-spinPos"));
+
+                if (currentPos > 0) {
+
+                    var finalPos = currentPos - interval;
+                    spinnerColumn.setAttribute("data-spinPos", finalPos);
+
+                    //Animate (UFF)
+                    if (window.matchMedia("(min-width: 500px)").matches) {
+                        spinnerColumn.style.transform = "translateY(calc(" + finalPos + " * var(--maxUnitBase))";
+                    } else {
+                        spinnerColumn.style.transform = "translateY(" + (rootUnit * finalPos) + "px)";
+                    }
+
+                    //Based on the measurements of the symbol removals and additions need to happen in intervals of 12.5
+                    lotto_Powerball.swipeLottoSpinnerUp(spinnerColumn, interval, lottoSpinnerContainer);
+                    spinnerColumn.setAttribute("data-middleValue", parseFloat(spinnerColumn.getAttribute("data-middleValue")) - interval);
+                    spinnerColumn.finalPos = finalPos;
+
+                } else {
+                    var finalPos = currentPos + interval;
+                    spinnerColumn.setAttribute("data-spinPos", finalPos);
+
+                    //Animate (UFF)
+                    if (window.matchMedia("(min-width: 500px)").matches) {
+                        spinnerColumn.style.transform = "translateY(calc(" + finalPos + " * var(--maxUnitBase))";
+                    } else {
+                        spinnerColumn.style.transform = "translateY(" + (rootUnit * finalPos) + "px)";
+                    }
+
+                    lotto_Powerball.swipeLottoSpinnerDown(spinnerColumn, interval, lottoSpinnerContainer);
+                    spinnerColumn.setAttribute("data-middleValue", parseFloat(spinnerColumn.getAttribute("data-middleValue")) + interval);
+                    spinnerColumn.finalPos = finalPos;
+                }
+            }
+
+        }
+    },
+
+    autoSpinRandomiseSpinner: function (spinnerColumn, lottoSpinnerContainer) {
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var ballNumber;
+        var min = 1;
+        var max = parseInt(lottoSpinnerContainer.getAttribute("data-maxLottoNumber"));
+        var powerBallMax = 20;
+        var lastRow;
+
+        if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn)) {
+            max = powerBallMax;
+            lastRow = true;
+        }
+
+        //Randomise first number then have the rest follow numerically
+        spinnerColumn.children[0].innerHTML = Math.floor(Math.random() * (max - min + 1)) + min;
+        spinnerColumn.children[0].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(spinnerColumn.children[0].innerHTML), lastRow);
+
+        for (var iLoop = 1; iLoop < spinnerColumn.children.length; iLoop++) {
+
+            spinnerColumn.children[iLoop].innerHTML = parseInt(spinnerColumn.children[iLoop - 1].innerHTML) + 1;
+            ballNumber = parseInt(spinnerColumn.children[iLoop].innerHTML);
+
+            if (ballNumber > max) {
+                spinnerColumn.children[iLoop].innerHTML.innerHTML = min;
+                ballNumber = min;
+            }
+
+            spinnerColumn.children[iLoop].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber, lastRow);
+
+            if (lastRow == true) {
+                spinnerColumn.children[iLoop].style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+                spinnerColumn.children[iLoop].style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(ballNumber, lastRow);
+            }
+
+        }
+
+    },
+
+    autoSpinLottoBeginAnimationTiming: function (spinnerColumn, interval, numberOfSpins, lottoSpinnerContainer) {
+        var rootUnit = (Root.unit());
+
+        setTimeout(function () {
+            var currentPos = parseFloat(spinnerColumn.getAttribute("data-spinPos"));
+            var moveUpPos = 12.5;
+            var finalPos = currentPos - moveUpPos;
+
+            spinnerColumn.setAttribute("data-spinPos", finalPos);
+            spinnerColumn.finalPos = finalPos;
+
+            //Animate (UFF)
+            if (window.matchMedia("(min-width: 500px)").matches) {
+                spinnerColumn.style.transform = "translateY(calc(" + finalPos + " * var(--maxUnitBase))";
+            } else {
+                spinnerColumn.style.transform = "translateY(" + (rootUnit * finalPos) + "px)";
+            }
+
+            lotto_Powerball.swipeLottoSpinnerUp(spinnerColumn, interval, lottoSpinnerContainer);
+            spinnerColumn.setAttribute("data-middleValue", parseFloat(spinnerColumn.getAttribute("data-middleValue")) - interval);
+            spinnerColumn.setAttribute("data-animateId", parseInt(spinnerColumn.getAttribute("data-animateId")) + 1);
+
+            if (parseInt(spinnerColumn.getAttribute("data-animateId")) <= numberOfSpins) {
+                lotto_Powerball.autoSpinLottoBeginAnimationTiming(spinnerColumn, interval, numberOfSpins, lottoSpinnerContainer);
+            }
+
+        }, parseInt(spinnerColumn.getAttribute("data-timeAnimate")));
+
+    },
+
+    LottoSpinnerToBoard: function (el) {
+        var lottoSpinnerContainer;
+
+        if (el.className == "lottoSpinnerContainer") {
+            lottoSpinnerContainer = el;
+        } else {
+            lottoSpinnerContainer = el.parentElement.parentElement.parentElement;
+        }
+
+        //Reset middle
+        lottoSpinnerContainer.middleValueTracker = [];
+
+        //Edit board flow
+        if (lottoSpinnerContainer.getAttribute("data-canEdit") === "editFlowAllowed") {
+            lotto_Powerball.editLottoSpinnerToBoard(lottoSpinnerContainer);
+            lottoSpinnerContainer.setAttribute("data-canEdit", "true");
+            return;
+        }
+
+        //Normal flow
+        var firstLottoContainer = lottoSpinnerContainer.querySelector(".firstLottoContainer");
+        var lottoSpinner = lottoSpinnerContainer.querySelector(".lottoSpinner");
+        var pillButtonContainer = lottoSpinnerContainer.querySelector(".pillButtonContainerLottoSpinner");
+        var lottoBoard;
+        var editText;
+
+        // Remove spinner and add Board
+        lottoBoard = lotto_Powerball.createAndPopulateLottoBoard(lottoSpinnerContainer);
+
+        editText = firstLottoContainer.querySelector(".lottoBoardRightText");
+        editText.innerHTML = lottoSpinnerContainer.getAttribute("data-selectedText");
+        editText.style.pointerEvents = "auto";
+        lottoSpinnerContainer.setAttribute("data-canEdit", "true");
+
+        firstLottoContainer.removeChild(lottoSpinner);
+        firstLottoContainer.removeChild(pillButtonContainer);
+        firstLottoContainer.appendChild(lottoBoard);
+
+    },
+
+    editLottoSpinner: function (currentElement) {
+        var lottoSpinnerContainer = currentElement.parentElement.parentElement.parentElement;
+        var edit = lottoSpinnerContainer.getAttribute("data-canEdit");
+        //Can only edit when no spinners are on screen
+        if (edit === "false" || edit === "editFlowAllowed") {
+            return;
+        } else {
+            lottoSpinnerContainer.setAttribute("data-canEdit", "editFlowAllowed")
+        }
+
+        var firstLottoContainer = lottoSpinnerContainer.querySelector(".firstLottoContainer");
+        var maxLottoNumber = lottoSpinnerContainer.getAttribute("data-maxLottoNumber");
+        var inputBoardValues = lottoSpinnerContainer.firstElementChild;
+        var spinner;
+        var pillBtn;
+        var doneBtn;
+
+        //enable shake to spin
+        lottoSpinnerContainer.shakeTimer = setInterval(lottoSpinnerContainer.shakeTimerHandler, 150);
+
+        //Used for touch events
+        var interval = 12.5;
+        var numberOfSpinnerColoumns = lotto_Powerball.getNumberofSpinnerColumns();
+        var spinnerColumn;
+        var editText;
+
+        editText = firstLottoContainer.querySelector(".lottoBoardRightText");
+        editText.innerHTML = lottoSpinnerContainer.getAttribute("data-unselectedText");
+        editText.style.pointerEvents = "auto";
+
+        //Create new clones so that lottoSpinnerContainer always contains copies with initial state values
+        spinner = lottoSpinnerContainer.lottoSpinner.cloneNode(true);
+
+        //Touch events need to be re-established with new spinner
+        firstLottoContainer.appendChild(spinner);
+
+        for (var i = 0; i < numberOfSpinnerColoumns; i++) {
+            spinnerColumn = firstLottoContainer.querySelector(".lottoSpinnerContainerColoumn" + (i + 1));
+            lotto_Powerball.setUpLottoTouchEventsForManualSpin(spinnerColumn, interval, (i + 1), lottoSpinnerContainer);
+        }
+
+        lotto_Powerball.getLottoSpinnerState(lottoSpinnerContainer, firstLottoContainer.querySelector(".lottoBoard"), spinner, numberOfSpinnerColoumns, maxLottoNumber);
+        firstLottoContainer.removeChild(firstLottoContainer.querySelector(".lottoBoard"));
+
+        pillBtn = lottoSpinnerContainer.pillButtonContainer.cloneNode(true);
+        firstLottoContainer.appendChild(pillBtn);
+
+        doneBtn = lottoSpinnerContainer.querySelector(".pillButtonLottoSpinner");
+        doneBtn.className = "pillButtonLottoSpinnerRightEnabled pillButtonLottoSpinner";
+        if (lottoSpinnerContainer.getAttribute("data-rightPillColour") != null || lottoSpinnerContainer.getAttribute("data-rightPillColour") != "") {
+            //Getting css variable
+            doneBtn.style.backgroundColor = getComputedStyle(document.body).getPropertyValue(lottoSpinnerContainer.getAttribute("data-rightPillColour"));
+            doneBtn.style.borderColor = getComputedStyle(document.body).getPropertyValue(lottoSpinnerContainer.getAttribute("data-rightPillColour"));
+        }
+
+        //Send info through to backend on done
+        inputBoardValues.name = lottoSpinnerContainer.getAttribute("data-key");
+        inputBoardValues.value = "";
+        MM.partialUpdate(lottoSpinnerContainer);
+
+    },
+
+    editLottoSpinnerToBoard: function (lottoSpinnerContainer) {
+        var firstLottoContainer = lottoSpinnerContainer.querySelector(".firstLottoContainer");
+        var lottoSpinner = lottoSpinnerContainer.querySelector(".lottoSpinner");
+        var pillButtonContainer = lottoSpinnerContainer.querySelector(".pillButtonContainerLottoSpinner");
+        var lottoBoard = lotto_Powerball.createAndPopulateLottoBoard(lottoSpinnerContainer);
+        var editText;
+
+
+        // Remove spinner and add Board
+        editText = firstLottoContainer.querySelector(".lottoBoardRightText");
+        editText.innerHTML = lottoSpinnerContainer.getAttribute("data-selectedText");
+        editText.style.pointerEvents = "auto";
+
+        firstLottoContainer.removeChild(lottoSpinner);
+        firstLottoContainer.removeChild(pillButtonContainer);
+        firstLottoContainer.appendChild(lottoBoard);
+
+    },
+
+    createAndPopulateLottoBoard: function (lottoSpinnerContainer) {
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var inputBoardValues = lottoSpinnerContainer.firstElementChild;
+        var lottoBoard = document.createElement('div');
+        var lottoBoardRow;
+        var numberOfSpinnerColoumns = lotto_Powerball.getNumberofSpinnerColumns();
+        var middleIndex = 2;
+        var lottoSpinnerContainerColoumn;
+
+        lottoBoard.className = "lottoBoard";
+
+        for (var i = 0; i < numberOfSpinnerColoumns; i++) {
+
+            lottoBoardRow = document.createElement('div');
+            lottoBoardRow.className = "lottoBoardRow";
+
+            lottoSpinnerContainerColoumn = lottoSpinnerContainer.querySelector(".lottoSpinnerContainerColoumn" + (i + 1));
+            lottoBoardRow.innerHTML = lottoSpinnerContainerColoumn.children[middleIndex].innerHTML;
+            inputBoardValues.value += lottoBoardRow.innerHTML + ",";
+            lottoBoardRow.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(lottoBoardRow.innerHTML));
+            lottoBoardRow.style.gridColumn = (i + 1);
+
+            lottoBoard.appendChild(lottoBoardRow);
+
+            if (game == "POWERBALL") {
+                //Style last coloumn according to game
+                if (i == (numberOfSpinnerColoumns - 1)) {
+                    lottoBoardRow.style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(lottoBoardRow.innerHTML), true);
+                    lottoBoardRow.style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(lottoBoardRow.innerHTML), true);
+                    lottoBoardRow.style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+                    var powerText = document.createElement('div');
+                    powerText.className = "powerBallText";
+                    powerText.innerHTML = "POWER";
+                    lottoBoard.appendChild(powerText);
+                }
+            }
+        }
+
+        inputBoardValues.value = inputBoardValues.value.slice(0, -1);
+
+        //Send info through to backend on done
+        inputBoardValues.name = lottoSpinnerContainer.getAttribute("data-key");
+        MM.partialUpdate(lottoSpinnerContainer);
+
+        return lottoBoard;
+
+    },
+
+    getLottoSpinnerState: function (lottoSpinnerContainer, lottoBoard, spinner, numberOfSpinnerColoumns, maxLottoNumber) {
+        var game = lottoSpinnerContainer.getAttribute("data-game");
+        var middleValues = lottoSpinnerContainer.firstElementChild.value.split(",");//.lottoInputsArray[index - 1].value.split(",");
+        var spinnerColumn;
+        var spinnerColumnValues;
+
+        for (var i = 0; i < numberOfSpinnerColoumns; i++) {
+            spinnerColumn = lottoSpinnerContainer.querySelector(".lottoSpinnerContainerColoumn" + (i + 1));
+            spinnerColumnValues = lotto_Powerball.determineLottoSpinnerColumnValues(parseInt(middleValues[i]), maxLottoNumber);
+
+            //Powerball allows for duplicate values in the power column so don't add its value to the duplicate tracker
+            if (lotto_Powerball.checkPowerballLastColumn(game, spinnerColumn) == false) {
+                //Update duplicate tracker array with edit boards previously selected values
+                lottoSpinnerContainer.middleValueTracker[i] = middleValues[i];
+            }
+
+            for (var iLoop = 0; iLoop < spinnerColumn.children.length; iLoop++) {
+                spinnerColumn.children[iLoop].innerHTML = spinnerColumnValues[iLoop];
+                spinnerColumn.children[iLoop].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(spinnerColumnValues[iLoop]));
+
+                if (game == "POWERBALL") {
+                    //Style last coloumn according to game
+                    if (i == (numberOfSpinnerColoumns - 1)) {
+                        spinnerColumn.children[iLoop].style.borderColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(spinnerColumnValues[iLoop]), true);
+                        spinnerColumn.children[iLoop].style.backgroundColor = lotto_Powerball.determineLottoSpinnerColour(parseInt(spinnerColumnValues[iLoop]), true);
+                        spinnerColumn.children[iLoop].style.color = lottoSpinnerContainer.getAttribute("data-bonusColour");
+                    }
+                }
+            }
+        }
+
+    },
+
+    determineLottoSpinnerColumnValues: function (middleValue, maxLottoNumber) {
+        var result = [];
+
+        //Only middle row values are saved for for state. We go up(-) by a max of two to get top column value and down(+) by a max of two to get bottom column value
+        //while staying withing min/max range
+        result[2] = (middleValue);
+        result[1] = lotto_Powerball.keepLottoValuesBetweenMinMax(middleValue - 1, maxLottoNumber);
+        result[0] = lotto_Powerball.keepLottoValuesBetweenMinMax(result[1] - 1, maxLottoNumber);
+        result[3] = lotto_Powerball.keepLottoValuesBetweenMinMax(middleValue + 1, maxLottoNumber);
+        result[4] = lotto_Powerball.keepLottoValuesBetweenMinMax(result[3] + 1, maxLottoNumber);
+
+        return result;
+    },
+
+    keepLottoValuesBetweenMinMax: function (value, maxLottoNumber) {
+        if (value < 1) {
+            return maxLottoNumber;
+        } else if (value > maxLottoNumber) {
+            return 1;
+        }
+        return value;
+    },
+
+};

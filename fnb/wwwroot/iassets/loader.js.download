@@ -1,0 +1,58 @@
+var Loader = {
+
+    show: function () {
+
+        if (MM.isMagicMountain()) {
+            var timerId = setInterval(function () {
+                Util.addClass(document.getElementById("content-overlay"), "full-mode");
+                Util.addClass(document.getElementById("loader"), "visible");
+                Timers.clearOne(timerId);
+            }, 600);
+            Timers.register(timerId);
+        } else {
+            Util.addClass(document.getElementById("content-overlay"), "full-mode");
+            Util.addClass(document.getElementById("loader"), "visible");
+        }
+
+    },
+
+    clear: function () {
+
+        if (MM.isMagicMountain()) {
+            var timerId = setInterval(function () {
+                Util.removeClass(document.getElementById("content-overlay"), "full-mode");
+                Util.removeClass(document.getElementById("loader"), "visible");
+                Timers.clearOne(timerId);
+            }, 600);
+            Timers.register(timerId);
+        } else {
+            Util.removeClass(document.getElementById("content-overlay"), "full-mode");
+            Util.removeClass(document.getElementById("loader"), "visible");
+        }
+
+    },
+
+    setCompletion: function (percent) {
+        var loaderPerc = document.getElementById("loader-percentage");
+        Util.addClass(loaderPerc, "visible");
+        loaderPerc.innerHTML = percent + "%";
+    },
+
+    showPartialUpdate: function (blockerEnable) {
+
+        var loader = document.getElementById("loaderClear");
+
+        if (blockerEnable) {
+
+            Util.addClass(document.getElementById("content-overlayClear"), "full-mode");
+            Util.addClass(loader, "visible");
+        }
+        else {
+
+            Util.removeClass(document.getElementById("content-overlayClear"), "full-mode");
+            Util.removeClass(loader, "visible");
+        }
+
+    }
+
+};

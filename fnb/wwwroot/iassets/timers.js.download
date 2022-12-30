@@ -1,0 +1,28 @@
+var Timers = {
+
+    _timers: [],
+
+    register: function (timerId) {
+
+        this._timers.push({
+            id: timerId
+        });
+
+    },
+
+    clear: function () {
+        for (index = 0; index < this._timers.length; ++index) {
+            clearInterval(this._timers[index].id);
+        }
+    },
+
+    clearOne: function (id) {
+        for (index = 0; index < this._timers.length; ++index) {
+            if (this._timers[index].id == id) {
+                clearInterval(this._timers[index].id);
+            }
+        }
+    },
+
+
+};

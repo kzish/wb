@@ -1,0 +1,164 @@
+var Quirks = {
+
+    _setAbsolute: function (isAbsolute) {
+
+        //Remove keyboard functionality for Desktops
+        if(Root.determineDesktopMobile() == false){
+            return;
+        }
+
+        console.log("Set absolute : " + isAbsolute);
+        var fixedElements = document.getElementsByClassName('fixed');
+        for (var x = 0; x < fixedElements.length; x++) {
+            if (isAbsolute) {
+                Util.addClass(document.querySelector(".baseBody"), 'keyboard');
+                fixedElements[x].style.position = 'static';
+
+                //Keyboard on screen
+                var baseBodyFooter = document.getElementById("base-content");
+                if(baseBodyFooter != null){
+                    if(baseBodyFooter.classList.contains("baseBodyFooter")) {
+                        baseBodyFooter.setAttribute("data-baseBodyFooter","true");
+                        baseBodyFooter.classList.remove("baseBodyFooter");
+                    }
+                }
+            } else {
+                Util.removeClass(document.querySelector(".baseBody"), 'keyboard');
+                fixedElements[x].style.position = 'fixed';
+
+                //Keyboard off screen
+                var baseBodyFooter = document.getElementById("base-content");
+                if(baseBodyFooter != null && baseBodyFooter.getAttribute("data-baseBodyFooter") == "true") {
+                    baseBodyFooter.classList.add("baseBodyFooter");
+                }
+            }
+        }
+    },
+
+    _applyInputFieldFix: function () {
+
+        var inputs = document.querySelectorAll("input,textarea");
+        for (var x = 0; x < inputs.length; x++) {
+
+            if (inputs[x].type == 'checkbox') continue;
+
+            if (inputs[x].classList.contains('exclude')) continue;
+
+            if (inputs[x].getAttribute("data-inputFix") === "true") continue;
+
+            inputs[x].addEventListener("focus", function () {
+                Quirks._setAbsolute(true);
+            });
+
+            inputs[x].addEventListener("blur", function () {
+                Quirks._setAbsolute(false);
+            });
+
+            inputs[x].setAttribute("data-inputFix","true");
+            // inputs[x].onfocus = function(){
+            //     Quirks._setAbsolute(true);
+            // };
+            // inputs[x].onblur = function(){
+            // 	Quirks._setAbsolute(false);
+            // };
+        }
+
+    },
+
+    _getTextWidthPix: function (text, testSpan) {
+        testSpan.innerHTML = text;
+        return testSpan.offsetWidth;
+    },
+
+    _applyManualLineBreaksForElement: function (element, testSpan) {
+
+        if (element.innerHTML.length == 0) return "";
+
+        testSpan.style.font = element.style.font;
+
+        var words = element.innerHTML.split(" ");
+        var line = "";
+        var result = "";
+        for (var x = 0; x < words.length; x++) {
+            var testLine = line + ((line != "") ? " " : "") + words[x];
+            if (this._getTextWidthPix(testLine, testSpan) > element.offsetWidth) {
+                result += line + "<br/>";
+                if (x <= words.length - 1) {
+                    result += words[x] + " ";
+                }
+                line = "";
+            } else {
+                line = testLine;
+                if (x == words.length - 1) {
+                    result += line;
+                }
+            }
+        }
+        element.innerHTML = result;
+    },
+
+    _applyManualLineBreaks: function () {
+
+        var lbFixElements = document.querySelectorAll(".lb-fix");
+        var testSpan = document.createElement("span");
+        testSpan.style.position = "absolute";
+        testSpan.style.left = "-9999px";
+        document.body.appendChild(testSpan);
+
+        for (var x = 0; x < lbFixElements.length; x++) {
+            this._applyManualLineBreaksForElement(lbFixElements[x], testSpan);
+        }
+        document.body.removeChild(testSpan);
+    },
+
+    _applyWrapPrevention: function () {
+
+        var elements = document.querySelectorAll("[data-no-wrap-before]");
+        for (var x = 0; x < elements.length; x++) {
+            var e = elements[x];
+            var eContent = e.innerHTML.trim();
+            var words = eContent.split(" ");
+            var newContent = "";
+            var noWrapBefore = e.getAttribute("data-no-wrap-before");
+            for (var y = 0; y < words.length; y++) {
+                if (newContent.length > 0) newContent += " ";
+                if (words[y].length <= noWrapBefore) {
+                    newContent += "<span class='no-wrap'>" + words[y] + "</span>";
+                } else {
+                    newContent += words[y];
+                }
+            }
+            e.innerHTML = newContent;
+        }
+    },
+
+    _forceFixElements: function () {
+
+        var elements = document.querySelectorAll(".force-fix");
+        for (var x = 0; x < elements.length; x++) {
+            elements[x].addEventListener('touchmove', function (e) {
+                e.preventDefault();
+            }, false);
+        }
+    },
+
+    init: function () {
+        this._applyInputFieldFix();
+        this._applyManualLineBreaks();
+        this._applyWrapPrevention();
+        this._forceFixElements();
+    },
+
+    disableDoubleClicks: function (type, e) {
+        if (type != "UPDATEFE" && type != "UPDATE" && type != "" && type != null) {
+            if (e != null) {
+                e.style.pointerEvents = "none";
+            } else {
+                var conversationBody = document.getElementById("ConversationBody");
+                if (conversationBody != null) {
+                    conversationBody.style.pointerEvents = "none";
+                }
+            }
+        }
+    },
+};

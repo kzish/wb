@@ -1,0 +1,377 @@
+var Form = {
+
+    freezePosition: false,
+
+    init: function () {
+        this._bindAnchorsForAjax();
+        this._bindFormSubmitInterceptor();
+        //this._bindHideOnKeyboard();
+    },
+
+    _bindAnchorsForAjax: function () {
+        var anchors = document.getElementsByTagName("a");
+        var length = anchors.length;
+        for (var i = 0; i < length; i++) {
+            var anchor = anchors[i];
+            if (anchor.href && anchor.href.trim().indexOf("javascript:") == -1 && !anchor.getAttribute('data-noajax') === true) {
+
+                if (anchor.getAttribute("data-bindStatus") == null) {
+                    anchor.setAttribute("data-bindStatus", "false");
+                }
+                if (anchor.getAttribute("data-type") === "SUBMIT" && anchor.getAttribute("data-bindStatus") == "false") {
+                    Form._getFormElement().setAttribute('action', anchor.href);
+                    anchor.addEventListener("click", function (e) {
+                        if (this.href != "#") {
+
+                            //Prevents double clicking during submitting
+                            if(e.currentTarget.parentElement != null){
+                                e.currentTarget.parentElement.style.pointerEvents = "none";
+                            }
+
+                            Form.currentTarget = e.currentTarget;
+
+                            console.log("Submitting form");
+                            Form._getFormElement().setAttribute('action', this.href);
+                            if (MM.isMagicMountain()) {
+                                //create timer
+                                MM.animateExit();
+                                var timerId = setInterval(function () {
+                                    Form.submit();
+                                    Timers.clearOne(timerId);
+
+                                    //Enables clicking again
+                                    if(Form.currentTarget.parentElement != null){
+                                        Form.currentTarget.parentElement.style.pointerEvents = "auto";
+                                        Form.currentTarget = null;
+                                    }
+
+                                }, 300);
+                                Timers.register(timerId);
+                            }
+                            else {
+                                Form.submit();
+                            }
+                        }
+                        Util.preventDefault(e);
+                        return false;
+                    }, false);
+
+                } else if (anchor.getAttribute("data-type") === "REFRESH" && anchor.getAttribute("data-bindStatus") == "false") {
+                    anchor.addEventListener("click", function (e) {
+                        console.log("Refreshing");
+                        if (MM.isMagicMountain()) {
+                            //create timer
+                            MM.animateExit();
+                            var timerId = setInterval(function () {
+                                Form.submit("/banking/refresh");
+                                Timers.clearOne(timerId);
+                            }, 300);
+                            Timers.register(timerId);
+                        }
+                        else {
+                            Form.submit("/banking/refresh");
+                        }
+                        Util.preventDefault(e);
+                        return false;
+                    }, false);
+                } else if (anchor.getAttribute("data-bindStatus") == "false") {
+                    anchor.addEventListener("click", function (e) {
+                        if (this.href != "#") {
+
+                            //Prevents double clicking during navigating
+                            if(e.currentTarget.parentElement != null){
+                                e.currentTarget.parentElement.style.pointerEvents = "none";
+                            }
+
+                            console.log("Navigating");
+                            if (MM.isMagicMountain()) {
+                                //create timer
+                                MM.animateExit();
+                                var that = this;
+                                var timerId = setInterval(function () {
+                                    var noLoader = that.href.trim().indexOf("tel:") == 0;
+                                    Form.navigate(that.href, noLoader);
+                                    Timers.clearOne(timerId);
+                                }, 300);
+                                Timers.register(timerId);
+                            }
+                            else {
+                                var noLoader = false;
+                                if (this.href.trim().indexOf("tel:") == 0) {
+                                    var noLoader = true;
+                                } else if (anchor.getAttribute("data-type") === "EXTERNAL") {
+                                    var noLoader = true;
+                                } else if (anchor.getAttribute("data-type") === "URL") {
+                                    var noLoader = true;
+                                }
+
+                                Form.navigate(this.href, noLoader);
+                            }
+                        }
+                        Util.preventDefault(e);
+                        return false;
+                    }, false);
+                }
+                //Vincent - Moved because of concurrence issue
+                anchor.setAttribute("data-bindStatus", "true");
+            }
+        }
+    },
+
+    _bindFormSubmitInterceptor: function () {
+
+        var handler = function (e) {
+            if (e.preventDefault) e.preventDefault();
+            Form.submit();
+            return false;
+        }
+
+        var form = this._getFormElement();
+        if (form.attachEvent) {
+            form.attachEvent("submit", handler);
+        } else {
+            form.addEventListener("submit", handler);
+        }
+    },
+
+    _getFormElement: function () {
+        var formElements = document.getElementsByTagName("form");
+        if (formElements.length > 0) {
+            return formElements[0];
+        }
+        return null;
+    },
+
+    onKeyboardStateChanged: function (isKeyboard) {
+
+        var elems = document.getElementsByClassName("hide-on-keyboard");
+        for (var x = 0; x < elems.length; x++) {
+            if (isKeyboard) {
+                Util.addClass(elems[x], "hidden");
+            } else {
+                Util.removeClass(elems[x], "hidden");
+            }
+        }
+    },
+
+    _bindHideOnKeyboard: function () {
+
+        this.initialScreenSize = window.innerHeight;
+        window.addEventListener("resize", function () {
+            var isKeyboard = (window.innerHeight < Form.initialScreenSize);
+            Form.onKeyboardStateChanged(isKeyboard);
+        }, false);
+
+    },
+
+    _executeScripts: function () {
+
+        function nodeName(elem, name) {
+            return elem.nodeName && elem.nodeName.toUpperCase() === name.toUpperCase();
+        };
+
+        function evalScript(elem) {
+            var data = (elem.text || elem.textContent || elem.innerHTML || "" ),
+                head = document.getElementsByTagName("head")[0] ||
+                    document.documentElement,
+                script = document.createElement("script");
+
+            script.type = "text/javascript";
+            try {
+                // doesn't work on ie...
+                script.appendChild(document.createTextNode(data));
+            } catch (e) {
+                // IE has funky script nodes
+                script.text = data;
+            }
+
+            head.insertBefore(script, head.firstChild);
+            head.removeChild(script);
+        };
+
+        // main section of function
+        var body_el = document.getElementsByTagName("body")[0];
+        var scripts = [],
+            script,
+            children_nodes = body_el.childNodes,
+            child,
+            i;
+
+        for (i = 0; children_nodes[i]; i++) {
+            child = children_nodes[i];
+            if (nodeName(child, "script") && (!child.type || child.type.toLowerCase() === "text/javascript")) {
+                scripts.push(child);
+            }
+        }
+
+        for (i = 0; scripts[i]; i++) {
+            script = scripts[i];
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            evalScript(scripts[i]);
+        }
+    },
+
+    _ajaxPageload: function () {
+        var html = this.responseText;
+        var body = html.slice(html.indexOf("<body"), html.indexOf("</body>"));
+        body = body.slice(body.indexOf(">") + 1);
+        document.getElementsByTagName("body")[0].innerHTML = body;
+        Form._executeScripts();
+        if (!Form.freezePosition) window.scrollTo(0, 0);
+    },
+
+    navigate: function (url, noLoader) {
+
+        if (typeof(noLoader) == 'undefined' || !noLoader) {
+            Loader.show();
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+
+        //.bind ensures that this inside of the function is the XHR object.
+        xhr.onload = this._ajaxPageload.bind(xhr);
+
+        //All preperations are clear, send the request!
+        xhr.send();
+
+        //Update the url
+        window.history.replaceState({}, "", url);
+    },
+
+    submit: function (url, noLoader) {
+
+        console.log("About to POST the form");
+
+        if (typeof(noLoader) == 'undefined' || !noLoader) {
+            Loader.show();
+        }
+
+        var form = this._getFormElement();
+        if (typeof url == 'undefined') {
+            url = form.action;
+        }
+        var xhr = new XMLHttpRequest();
+
+        var elements = form.elements;
+        var params = "";
+        var publicKey = "";
+        var inputValue = "";
+        var encryptedInput = "";
+
+        for (var j = 0, e; e = elements[j]; j++) {
+            if (e.getAttribute("data-publicKey")) {
+                inputValue = e.getAttribute("value").valueOf();
+                if (inputValue !== "" && inputValue > 0) {
+                    var hiddenKey = e.getAttribute("data-key").valueOf();
+                    publicKey = e.getAttribute("data-publicKey").valueOf();
+                    encryptedInput = MM.inputEncrypt(inputValue, publicKey);
+                    var hiddenInput = document.querySelector("input[data-hidden=\"" + hiddenKey + "_hiddenInput" + "\"]");
+                    hiddenInput.value = encryptedInput;
+                }
+            }
+        }
+
+        for (var i = 0, e; e = elements[i]; i++) {
+            if (e.name && !e.disabled) {
+                /**Allow unchecked checkbox to be submitted**/
+                //if (e.type == "checkbox" && !e.checked) {
+                //	continue;
+                //}
+                if (e.getAttribute("data-ignoreEmpty") && e.value == "") {
+                    continue;
+                }
+                if (params.length > 0) {
+                    params += "&";
+                }
+                if (e.getAttribute("data-URLEncodedPassThrough") === 'true') {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(encodeURIComponent(e.value));
+                } else {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(e.value);
+                }
+            }
+        }
+        xhr.open("POST", url);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+        //.bind ensures that this inside of the function is the XHR object.
+        xhr.onload = this._ajaxPageload.bind(xhr);
+
+        //All preperations are clear, send the request!
+        xhr.send(params);
+
+        //Update the url
+        window.history.replaceState({}, "", url);
+    },
+
+    _disablePasswordFieldDetection: function () {
+
+        var passwordInputs = document.querySelectorAll("input[type='password']");
+        for (var x = 0; x < passwordInputs.length; x++) {
+            if (passwordInputs[x].getAttribute("type") == "password") {
+                var password = passwordInputs[x].value;
+                passwordInputs[x].style.visibility = "hidden";
+                passwordInputs[x].setAttribute("type", "text");
+                passwordInputs[x].value = password;
+            }
+        }
+    },
+
+    blurInputsFocus: function () {
+
+        var inputs = document.querySelectorAll("input");
+        for (var x = 0; x < inputs.length; x++) {
+            inputs[x].blur();
+        }
+    },
+
+    appendHiddenInput: function (name, value) {
+        var e = document.createElement("input");
+        e.setAttribute("type", "hidden");
+        e.setAttribute("name", name);
+        e.setAttribute("value", value);
+        Form._getFormElement().appendChild(e);
+    },
+
+    showPassword: function () {
+        var textField = document.getElementById('showInput');
+        var button = document.getElementById('showButton');
+
+        if (textField.getAttribute("type") == "password") {
+            textField.setAttribute("type", "text");
+            button.innerText = 'Hide';
+        }
+        else {
+            textField.setAttribute("type", "password");
+            button.innerText = 'Show';
+        }
+    },
+
+    focusMenuButton: function (e) {
+
+        e.style.background = e.getAttribute("data-selectedBgColour");
+        e.style.color = e.getAttribute("data-selectedColour");
+
+    },
+
+    focusMenuItem: function (e) {
+
+
+        var allMenuItems = document.getElementsByClassName("MenuItemContainer");
+
+        for (var menuItem = 0; menuItem < allMenuItems.length; menuItem++) {
+
+            allMenuItems[menuItem].classList.remove("selectedMenuItem");
+            allMenuItems[menuItem].style.background = e.getAttribute("data-selectedBgColour");
+            allMenuItems[menuItem].style.color = e.getAttribute("data-inkColour");
+
+        }
+
+        e.classList.add("selectedMenuItem");
+        e.style.background = e.getAttribute("data-selectedColour");
+        e.querySelector(".MenuItemText").style.color = e.getAttribute("data-selectedBgColour");
+
+    }
+};

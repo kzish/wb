@@ -1,0 +1,437 @@
+var Overview = {
+
+    //LINE_CHART
+    d3TextWrap: function (text, width, paddingRightLeft, paddingTopBottom) {
+        paddingRightLeft = paddingRightLeft || 5; //Default padding (5px)
+        width = width - (paddingRightLeft * 2); //Take the padding into account
+        paddingTopBottom = (paddingTopBottom || 5) - 2; //Default padding (5px), remove 2 pixels because of the borders
+
+        var textAlign = text.attr('text-anchor') || 'left';
+        var arrLineCreatedCount = [];
+        text.each(function () {
+            var text = d3.select(this),
+                words = text.text().split(/[ \xA0\f\n\r\t\v]+/).reverse(), //Don't cut non-breaking space (\xA0), as well as the Unicode characters \u00A0 \u2028 \u2029)
+                word,
+                line = [],
+                lineNumber = 0,
+                lineHeight = 1.1, //Ems
+                x = text.attr("x"),
+                y = text.attr("y"),
+                dy = parseFloat(text.attr("dy")),
+                createdLineCount = 1; //Total line created count
+
+            //Clean the data in case <text> does not define those values
+            if (isNaN(dy)) dy = 1; //Default padding (1em)
+            var dx;
+            if (textAlign === 'middle') { //Offset the text according to the anchor
+                dx = width / 2;
+            }
+            else { //'left' and 'right' //FIXME text-anchor 'right' does not have any effect on tspans, only 'left' and 'middle' -> bug ?
+                dx = 0;
+            }
+            x = ((null === x) ? paddingRightLeft : x) + dx; //Default padding (5px)
+            y = (null === y) ? paddingTopBottom : y; //Default padding (5px)
+
+            var tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+            //noinspection JSHint
+            while (word = words.pop()) {
+                line.push(word);
+                tspan.text(line.join(" "));
+                if (tspan.node().getComputedTextLength() > width && line.length > 1) {
+                    line.pop();
+                    tspan.text(line.join(" "));
+                    line = [word];
+                    tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+                    ++createdLineCount;
+                }
+            }
+
+            arrLineCreatedCount.push(createdLineCount); //Store the line count in the array
+        });
+        return arrLineCreatedCount;
+    },
+
+    createLineChart: function () {
+        var elements = document.querySelectorAll("svg[data-object]");
+        var chartData = JSON.parse(elements[0].getAttribute("data-object"));
+
+        var x = d3.scale.linear()
+            .range([0, width]);
+
+        var y = d3.scale.linear()
+            .range([height, 0]);
+
+        var color = d3.scale.category10();
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+        var line = d3.svg.line()
+            .interpolate("basis")
+            .x(function (d) {
+                return xRange(parseFloat(d.x));
+            })
+            .y(function (d) {
+                return yRange(parseFloat(d.y));
+            });
+
+
+        var svg = d3.select("#LINE_CHART")
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var charts = chartData.charts;
+
+
+        /* Set data for X Axis */
+        var wml = parseFloat(width) - parseFloat(margin.left);
+        var x = d3.scale.ordinal().rangeRoundBands([0, (wml)], 0),
+            xRange = d3.scale.linear().range([0, wml]).domain([d3.min(chartData.Labels.xLabels.data, function (d) {
+                return 0;
+            }),
+                d3.max(chartData.Labels.xLabels.data, function (d) {
+                    return 100;
+                })
+            ]),
+            xAxis = d3.svg.axis().scale(x).orient("bottom");
+        x.domain(chartData.Labels.xLabels.label);
+        svg.append("g")
+            .attr("class", "xAxis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+            .select("path")
+            .style("display", "none");
+
+        svg.select(".xAxis")
+            .selectAll(".tick")
+            .style("fill", "#E0E0E0");
+
+        svg.select(".xAxis")
+        //.selectAll(".tick text")
+        //.call(Overview.d3TextWrap, x.rangeBand());
+
+
+        /*Set data for Y Axis */
+        y = d3.scale.ordinal().rangeRoundBands([height, 0], 0),
+            yRange = d3.scale.linear().range([height, 0]).domain([d3.min(chartData.Labels.yLabels.data, function (d) {
+                return 0;
+            }),
+                d3.max(chartData.Labels.yLabels.data, function (d) {
+                    return 100;
+                })
+            ]),
+            yAxis = d3.svg.axis().scale(y).orient("left");
+        y.domain(chartData.Labels.yLabels.label);
+        svg.append("g")
+            .attr("class", "yAxis")
+            .call(yAxis)
+            .select("path")
+            .style("display", "none");
+
+        svg.select(".yAxis")
+            .selectAll(".tick")
+            .style("fill", "#E0E0E0");
+
+
+        for (i = 0; i < chartData.Charts.length; i++) {
+            if (chartData.Charts[i].type == "LINE") {
+                svg.append("svg:path")
+                    .attr("d", line(chartData.Charts[i].Data))
+                    .attr("stroke", chartData.Charts[i].color)
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none");
+            }
+            if (chartData.Charts[i].type == "DOT") {
+                svg.append('svg:circle')
+                    .style({"fill": chartData.Charts[i].color, "cursor": "normal"})
+                    .attr("cx", xRange(chartData.Charts[i].Data[0].x))
+                    .attr("cy", yRange(chartData.Charts[i].Data[0].y))
+                    .attr("r", 5)
+
+            }
+        }
+
+        svg.append("svg:line")
+            .attr("class", "vertical-grid-lines")
+            .attr("x1", xRange(parseFloat(chartData.DottedLine.x)))
+            .attr("y1", 0)
+            .attr("x2", xRange(parseFloat(chartData.DottedLine.x)))
+            .attr("y2", height)
+            .style("stroke", chartData.DottedLine.color)
+            .style("stroke-width", 1.5)
+            .style("stroke-dasharray", ("3, 3"));
+
+    },
+
+    //Vincent - Screen Calculation code here
+
+    calculateScreen: function () {
+        conentContainerBlock = document.getElementById('overview_container');
+        if(conentContainerBlock == null || conentContainerBlock == ""){
+            return;
+        }
+        conentContainerStyle = getComputedStyle(conentContainerBlock);
+
+        var headerHeight = 56;
+        var footerHeight = 49;
+        var carouselHeight = 138;
+        var windowHeight = window.innerHeight;
+        var availableHeight = 0;
+        var chartHeight = 0;
+        var contentHeight = 0;
+        var iconHeight = 0;
+
+        if (footerExists) {
+            availableHeight = windowHeight - (footerHeight + headerHeight + carouselHeight);
+        } else {
+            availableHeight = windowHeight - (headerHeight + carouselHeight);
+        }
+
+
+        if (twoChartstyle != undefined) {
+            if (twoChartstyle.height) {
+                chartHeight = twoChartstyle.height.match(/\d+/)[0];
+            }
+        }
+        if (lineChartstyle != undefined) {
+            if (lineChartstyle.height) {
+                chartHeight = lineChartstyle.height.match(/\d+/)[0];
+            }
+        }
+        if (goalChartStyle != undefined) {
+            if (goalChartStyle.height) {
+                chartHeight = goalChartStyle.height.match(/\d+/)[0];
+            }
+        }
+        if (iconContainerStyle != undefined) {
+            if (iconContainerStyle.height) {
+                iconHeight = iconContainerStyle.height.match(/\d+/)[0];
+            }
+        }
+
+        var ch = 0, cpt = 0, cpb = 0;
+        if (conentContainerStyle != undefined) {
+            if (conentContainerStyle.height) {
+                ch = conentContainerStyle.height.match(/\d+/)[0];
+            }
+            if (conentContainerStyle.paddingTop) {
+                cpt = conentContainerStyle.paddingTop.match(/\d+/)[0];
+            }
+            if (conentContainerStyle.paddingBottom) {
+                cpb = conentContainerStyle.paddingBottom.match(/\d+/)[0];
+            }
+        }
+
+        contentHeight = parseFloat(ch) + parseFloat(cpt) + parseFloat(cpb);
+
+        //we need to check that we are not causing an overflow problem here...
+        if (availableHeight > (parseFloat(iconHeight) + parseFloat(chartHeight) + parseFloat(contentHeight))) {
+            var suggestedPadding = ((availableHeight - (parseFloat(iconHeight) + parseFloat(chartHeight) + parseFloat(contentHeight))) / 2) - 2;
+
+            //For Universal form factor
+            if(window.matchMedia("(min-width: 500px)").matches){
+                suggestedPadding = suggestedPadding - 25;
+            }
+            //
+
+            document.querySelector("#base-content").style.minHeight = availableHeight + "px";
+            if (twoChartstyle != undefined) {
+                if (twoChartstyle.height) {
+                    document.querySelector("#two_chart").style.paddingTop = suggestedPadding + "px";
+                    document.querySelector("#two_chart").style.paddingBottom = suggestedPadding + "px";
+                }
+            }
+            if (lineChartstyle != undefined) {
+                if (lineChartstyle.height) {
+                    document.querySelector("#line_chart").style.paddingTop = suggestedPadding + "px";
+                    document.querySelector("#line_chart").style.paddingBottom = suggestedPadding + "px";
+                }
+            }
+            if (goalChartStyle != undefined) {
+                if (goalChartStyle.height) {
+                    document.querySelector("#base-goal_chart").style.paddingTop = suggestedPadding + "px";
+                    document.querySelector("#base-goal_chart").style.paddingBottom = suggestedPadding + "px";
+                }
+            }
+            if (iconContainerStyle != undefined) {
+                if (iconContainerStyle.height) {
+                    document.querySelector('#' + iconContainerId).style.paddingTop = suggestedPadding + "px";
+                    document.querySelector('#' + iconContainerId).style.paddingBottom = suggestedPadding + "px";
+                }
+            }
+            if (doorsPanel) {
+                if (conentContainerStyle != undefined) {
+                    if (conentContainerStyle.height) {
+                        suggestedPadding = ((availableHeight - (parseFloat(contentHeight))) / 2) - 2;
+                        if (iconContainerId != '') {
+                            document.querySelector('#' + iconContainerId).style.paddingTop = "0px";
+                            document.querySelector('#' + iconContainerId).style.paddingBottom = "0px";
+                        }
+                        document.querySelector("#overview_container").style.paddingTop = suggestedPadding + "px";
+                        document.querySelector("#overview_container").style.paddingBottom = suggestedPadding + "px";
+                    }
+                }
+            }
+
+        }
+        if (availableHeight < (parseFloat(iconHeight) + parseFloat(chartHeight) + parseFloat(contentHeight))) {
+            //clear out the chart/image
+            if (twoChartstyle != undefined) {
+                if (twoChartstyle.height) {
+                    //clear out the HTML
+                    document.querySelector("#two_chart").style.paddingTop = (availableHeight - parseFloat(contentHeight)) + "px";
+                    document.querySelector("#two_chart").innerHTML = '';
+                }
+            }
+            if (lineChartstyle != undefined) {
+                if (lineChartstyle.height) {
+                    //clear out the HTML
+                    document.querySelector("#line_chart").style.paddingTop = (availableHeight - parseFloat(contentHeight)) + "px";
+                    document.querySelector("#line_chart").innerHTML = '';
+                }
+            }
+            if (goalChartStyle != undefined) {
+                if (goalChartStyle.height) {
+                    //clear out the HTML
+                    document.querySelector("#base-goal_chart").style.paddingTop = (availableHeight - parseFloat(contentHeight)) + "px";
+                    document.querySelector("#base-goal_chart").innerHTML = '';
+                }
+            }
+            if (iconContainerStyle != undefined) {
+                if (iconContainerStyle.height) {
+                    //clear out the HTML
+                    document.querySelector('#' + iconContainerId).style.paddingTop = (availableHeight - parseFloat(contentHeight)) + "px";
+                    document.querySelector('#' + iconContainerId).innerHTML = "";
+                }
+            }
+            if (doorsPanel) {
+                if (iconContainerStyle != undefined) {
+                    if (iconContainerStyle.height) {
+                        //clear out the HTML
+                        var suggestedPadding = ((availableHeight - (parseFloat(contentHeight) - parseFloat(iconHeight))) / 2) - 2;
+                        if (iconContainerId != '') {
+                            document.querySelector('#' + iconContainerId).style.paddingTop = "0px";
+                            document.querySelector('#' + iconContainerId).style.paddingBottom = "0px";
+                        }
+                        document.querySelector('#overview_container').style.paddingTop = suggestedPadding + "px";
+                        document.querySelector('#overview_container').style.paddingBottom = suggestedPadding + "px";
+                        document.querySelector('#' + iconContainerId).innerHTML = "";
+                    }
+                }
+            }
+
+        }
+    },
+
+    //Vincent - Partial Update code here
+
+    isUpdating: false,
+
+    //Vincent - Send update request
+    partialUpdate: function (e) {
+        var requestType = e.getAttribute("data-dynamicRequestType");
+        if (!requestType) {
+            return;
+        }
+        var key = e.getAttribute("data-key");
+        var parent = e.getAttribute("data-parent");
+        var value = encodeURIComponent(e.value);
+        var xhr = new XMLHttpRequest();
+
+        var form = document.getElementsByTagName("form");
+
+        var elements = form[0].elements;
+        var params = "";
+        for (var i = 0, e; e = elements[i]; i++) {
+            if (e.name && !e.disabled) {
+                /**Allow unchecked checkbox to be submitted**/
+                //if (e.type == "checkbox" && !e.checked) {
+                //	continue;
+                //}
+                if (params.length > 0) {
+                    params += "&";
+                }
+                if (e.getAttribute("data-URLEncodedPassThrough") === 'true') {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(encodeURIComponent(e.value));
+                } else {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(e.value);
+                }
+            }
+        }
+
+        xhr.open("POST", "/banking/partialOverview?requestType=" + requestType + "&parent=" + parent);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onload = Overview.partialUpdateResponseHandler.bind(xhr);
+        xhr.send(params);
+    },
+
+    //Vincent - get updated html back
+    partialUpdateResponseHandler: function (e) {
+
+        if (!Overview.isUpdating) {
+
+            var response = JSON.parse(this.responseText);
+            var data = response.dataClean;
+
+            //Delete All Elements
+            for (dataCount = 0; dataCount < data.length; ++dataCount) {
+
+                var dataObject = data[dataCount];
+                Overview.updateElement(dataObject);
+
+            }
+
+        }
+
+        linechartBlock = document.getElementById('line_chart');
+        lineChartstyle = getComputedStyle(linechartBlock);
+
+        Overview.calculateScreen();
+
+    },
+
+    //Vincent - replace html with updated html
+    updateElement: function (dataObject) {
+
+        //Delete dataObject from DOM
+        var elements = document.querySelectorAll("div[data-id=\"" + dataObject.id + "\"]");
+        for (elementCount = 0; elementCount < elements.length; ++elementCount) {
+
+            var element = elements[elementCount];
+            element.parentNode.removeChild(element);
+
+        }
+
+        if (dataObject.visible == "true") {
+            //Insert Update/New dataObject
+            var allElements = document.querySelectorAll("div[data-id]");
+            for (allElementCount = 0; allElementCount < allElements.length; ++allElementCount) {
+
+                var element = allElements[allElementCount];
+
+                var elementOrder = element.getAttribute("data-order");
+                if (parseInt(dataObject.order) <= parseInt(elementOrder)) {
+
+                    element.insertAdjacentHTML('beforebegin', dataObject.html);
+                    break;
+                }
+                else {
+                    if (allElementCount + 1 == allElements.length) {
+                        element.insertAdjacentHTML('afterend', dataObject.html);
+                        break;
+                    }
+                }
+
+            }
+            Overview.createLineChart();
+        }
+
+    }
+
+};

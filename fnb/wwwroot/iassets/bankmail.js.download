@@ -1,0 +1,358 @@
+var BankMail = {
+    init:function(){
+        BankMail.disableInput();
+    },
+    attachItem : function(key){
+
+        var attachmentObject = document.querySelector(".attachmentInnerContainer");
+
+        if( attachmentObject === null){
+            return;
+        }
+        var attachmentNumber = attachmentObject.getAttribute("data-attachment-number");
+        attachmentNumber = parseInt(attachmentNumber);
+        var id = "attachment_"+attachmentNumber+"_"+key;
+        var inputFile = document.getElementById(id);
+        inputFile.click();
+    },
+    displayName : function(id,spanId){
+        var fullPath = document.getElementById(id);
+        var spanFileName = document.getElementById(spanId);
+        var key = "";
+
+        /* get attachment images */
+        var attachmentIcons = document.getElementById("attachmentIcons");
+        var imageIcon = attachmentIcons.getAttribute("data-image");
+        var pdfIcon = attachmentIcons.getAttribute("data-pdf");
+        var docIcon = attachmentIcons.getAttribute("data-doc");
+        var xlsIcon = attachmentIcons.getAttribute("data-xls");
+        var thingSettingsContainer = document.getElementById("thingSettingsContainer");
+
+        var mimeValid = false;
+        /* end */
+        if(fullPath != null)
+        {
+
+            var mimeTypes = thingSettingsContainer.getAttribute("accept");
+
+            if(mimeTypes !== null){
+                mimeTypes = mimeTypes.split(",");
+            }
+
+            for (mimeCount = 0; mimeCount < mimeTypes.length; ++mimeCount) {
+                var mimeType = mimeTypes[mimeCount];
+
+                if (mimeType === fullPath.files[0].type) {
+                    mimeValid = true;
+                }
+            }
+
+            if (!mimeValid) {
+                var invalidMimeTypeMessage = thingSettingsContainer.getAttribute("data-invalidmimetypemessage");
+                var attachmentErrorSpan = document.getElementById("attachmentError");
+                attachmentErrorSpan.innerHTML = invalidMimeTypeMessage;
+                attachmentErrorSpan.style.display = "inline-block";
+
+                var timerId = setInterval(function () {
+                    Timers.clearOne(timerId);
+                    attachmentErrorSpan.innerHTML = "";
+                    attachmentErrorSpan.style.display = "none";
+                }, 3000);
+                Timers.register(timerId);
+                return;
+            }
+            var maxSize = thingSettingsContainer.getAttribute("data-maxSize");
+            for (var file = 0; file < fullPath.files.length; file++) {
+
+                var currentFile = fullPath.files[file];
+                if (currentFile.size > maxSize) {
+                    //File to big
+                    var maxSizeError = thingSettingsContainer.getAttribute("data-maxSizeMessage");
+                    attachmentErrorSpan = document.getElementById("attachmentError");
+                    attachmentErrorSpan.innerHTML = maxSizeError;
+                    attachmentErrorSpan.style.display = "inline-block";
+
+                    var timerId = setInterval(function () {
+                        Timers.clearOne(timerId);
+                        attachmentErrorSpan.innerHTML = "";
+                        attachmentErrorSpan.style.display = "none";
+                    }, 3000);
+                    Timers.register(timerId);
+                    return;
+                }
+            }
+
+            if(fullPath.value != ''){
+
+                // If value not null create new div
+                var filename = fullPath.files.item(0).name;
+
+                var attachmentContainer = document.querySelector(".attachmentOuterContainer");
+                if( attachmentContainer === null){
+                    return;
+                }
+                attachmentContainer.style.display="block";
+                var attachmentObject = document.querySelector(".attachmentInnerContainer");
+
+                if( attachmentObject === null){
+                    return;
+                }
+                var attachmentNumber = attachmentObject.getAttribute("data-attachment-number");
+                attachmentNumber = parseInt(attachmentNumber);
+
+                var currentAttachmentDiv = document.getElementById("attachmentDiv_"+attachmentNumber+"_"+key);
+                currentAttachmentDiv.style.visibility = "visible";
+
+                attachmentNumber ++;
+                attachmentObject.setAttribute("data-attachment-number", attachmentNumber);
+
+                var newInput = document.createElement("INPUT");
+                newInput.type = "file";
+                newInput.id = "attachment_"+attachmentNumber+"_"+key;
+                newInput.setAttribute("onchange", "BankMail.displayName('attachment_"+attachmentNumber+"_"+key+"', 'fileName_"+attachmentNumber+"_"+key+"')");
+
+
+                var hiddenInput = document.createElement("INPUT");
+                hiddenInput.type = "hidden";
+                hiddenInput.id = "hiddenFileInput_"+attachmentNumber+"_"+key;
+                hiddenInput.setAttribute("data-ignoreEmpty", true);
+
+                //pdf icon
+                var attachmentIcon = document.createElement("IMG");
+                var currentIcon =  document.getElementById("attachIcon_"+(attachmentNumber-1)+"_"+key); //for pdf before newly created one
+
+                if (filename.split('.').pop() === "pdf") {
+                    currentIcon.src = pdfIcon;
+                } else if (filename.split('.').pop() === "xls" || filename.split('.').pop() === "xlsx" ) {
+                    currentIcon.src = xlsIcon;
+                } else if (filename.split('.').pop() === "png"  || filename.split('.').pop() === "jpg" || filename.split('.').pop() === "jpeg" || filename.split('.').pop() === "bmp") {
+                    currentIcon.src = imageIcon;
+                } else {
+                    currentIcon.src = docIcon;
+                }
+                attachmentIcon.id = "attachIcon_"+attachmentNumber+"_"+key;
+                attachmentIcon.className = "pdfIcon";
+
+                // close icon
+                var iconContainer = document.getElementById("attachmentIcons");
+                var closeIconId = iconContainer.getAttribute("data-closeiconid");
+                var closeIcon = document.createElement("IMG");
+                closeIcon.src = closeIconId;
+                closeIcon.id = "closeIcon_"+attachmentNumber+"_"+key;
+                closeIcon.closeIcon = "closeIcon";
+                closeIcon.setAttribute("onclick", "BankMail.removeUpload('attachmentDiv_"+attachmentNumber+"_"+key+"','"+key+"')");
+
+                var span = document.createElement("SPAN");
+                span.id = "fileName_"+attachmentNumber+"_"+key;
+                span.className = "fileNameSpan";
+                //wrapper div
+                var attachmentDiv = document.createElement("DIV");
+                attachmentDiv.id = "attachmentDiv_"+attachmentNumber+"_"+key;
+                attachmentDiv.appendChild(attachmentIcon);
+                attachmentDiv.appendChild(span);
+                attachmentDiv.appendChild(closeIcon);
+                attachmentDiv.appendChild(newInput);
+                attachmentDiv.appendChild(hiddenInput);
+
+                attachmentDiv.className = "createAttachment";
+                attachmentDiv.style.visibility = "hidden";
+                var attachmentHolder = document.getElementById( "attachmentHolder_"+key);
+                attachmentHolder.style.gridTemplateColumns = "repeat("+(attachmentObject.childElementCount)+",calc(42 * var(--unit)))";
+                attachmentHolder.appendChild(attachmentDiv);
+                spanFileName.innerHTML = filename;
+                //END
+
+                // XHR code to upload
+                var fileInput = fullPath;
+
+
+                if (fileInput.files.length > 0) {
+
+                    var inputHidden = document.getElementById("hiddenFileInput_"+(attachmentNumber-1)+"_"+key)
+
+                    var reader = new FileReader();
+                    reader.readAsDataURL(fileInput.files[0]);
+                    reader.onload = (function (fileInput, inputHidden) {
+                        return function (e) {
+                            var data = e.target.result;
+                            var payload = data.split(',')[1];
+
+                            var xhr = new XMLHttpRequest();
+                            xhr.onreadystatechange = function() {
+                                if (this.readyState == 4 && this.status == 200) {
+                                    var response = JSON.parse(this.responseText);
+                                    if (response.returnInfo === "success") {
+                                        var hashedValue =  response.returnHash;
+                                        inputHidden.value = hashedValue + ":" + filename;
+                                        inputHidden.name = hashedValue;
+                                    }
+                                    else if(response.returnInfo === "failed"){
+                                        var uploadFailureMessage = thingSettingsContainer.getAttribute("data-uploadfailuremessage");
+                                        var attachmentErrorSpan = document.getElementById("attachmentError");
+                                        attachmentErrorSpan.style.display = "inline-block";
+                                        attachmentErrorSpan.innerHTML = uploadFailureMessage;
+                                        BankMail.removeUpload('attachmentDiv_'+(attachmentNumber-1)+"_",'')
+
+                                        var timerId = setInterval(function () {
+                                            Timers.clearOne(timerId);
+                                            attachmentErrorSpan.innerHTML = "";
+                                            attachmentErrorSpan.style.display = "none";
+                                        }, 3000);
+                                        Timers.register(timerId);
+                                    }
+
+                                }
+                            };
+                            xhr.open("POST", "/banking/thingUpload?host=" + thingSettingsContainer.getAttribute('data-host') + "&port=" + thingSettingsContainer.getAttribute('data-port') +
+                                "&userName=" + thingSettingsContainer.getAttribute('data-userName') + "&password=" + thingSettingsContainer.getAttribute('data-password') +
+                                "&fileName=" + filename + "&filePrefix=" + thingSettingsContainer.getAttribute('data-fileNamePrefix') +
+                                "&maxSize=" + thingSettingsContainer.getAttribute('data-maxSize') + "&fileNumber=" + (1));
+                            xhr.send(payload);
+                        };
+                    })(fileInput, inputHidden);
+                }
+                // END XHR to upload
+            }
+            else{
+                //clear Attachment container div
+                BankMail.clearAttachmentContainer();
+            }
+        }
+    },
+    removeUpload: function(id,key){
+        var parentElement = document.getElementById(id);
+        var childElement = parentElement.lastElementChild;
+        while (childElement) {
+            parentElement.removeChild(childElement);
+            childElement = parentElement.lastElementChild;
+        }
+        parentElement.remove();
+
+        //clear Attachment container div
+        BankMail.clearAttachmentContainer();
+
+        var attachmentInnerContainer = document.querySelector(".attachmentInnerContainer");
+        var attachmentHolder = document.getElementById( "attachmentHolder_"+key);
+        attachmentHolder.style.gridTemplateColumns = "repeat("+(attachmentInnerContainer.childElementCount -1)+",calc(38 * var(--unit)))";
+
+    },
+    clearAttachmentContainer : function(){
+        var attachmentInnerContainer = document.querySelector(".attachmentInnerContainer");
+        var attachmentOuterContainer = document.querySelector(".attachmentOuterContainer");
+        if( attachmentInnerContainer === null || attachmentOuterContainer === null){
+            return;
+        }
+        if(attachmentInnerContainer.childElementCount == 1 ){
+            attachmentOuterContainer.style.display="none";
+        }
+    },
+    disableInput :function () {
+        var icon = document.querySelector(".rightIconButtonContent");
+        if(icon != null){
+            var displayIcon = icon.getAttribute("data-disabledicon");
+            var ImgIcon = document.querySelector(".rightIconButtonImg");
+            ImgIcon.src = displayIcon;
+        }
+    },
+    removeEmailAddress :function(id) {
+        var rightIconButtonContent = document.querySelector(".rightIconButtonContent");
+        rightIconButtonContent.onclick = function () {
+            Form.submit(rightIconButtonContent.getAttribute("data-url"));
+        };
+
+        var rightIconButtonImg = document.querySelector(".rightIconButtonImg");
+        var enabledIcon = rightIconButtonContent.getAttribute("data-abledicon");
+        rightIconButtonContent.style.pointerEvents = "auto";
+        rightIconButtonImg.src = enabledIcon;
+        var span = document.getElementById(id);
+        var hiddenInput = document.getElementById("hidden_" + id);
+        span.remove();
+        hiddenInput.remove();
+    },
+    maxLengthPrevent: function(text,maxLimit){
+        var nbsp = /&nbsp;/g;
+        var finalString = text.innerHTML;
+        finalString = finalString.replace(nbsp, " ");
+        var wordCount = document.getElementById("wordCount");
+        wordCount.innerText = (maxLimit - (finalString.length))+ " characters left";
+        if(finalString.length >= parseInt(maxLimit) && event.keyCode !== 8) {
+            text.innerHTML =  finalString.substring(0, finalString.length - 1);
+            BankMail.setCaratTo(text,  finalString.length -1);
+        }
+    },
+    setCaratTo: function setCaratTo(contentEditableElement, position) {
+        //set cursor position.
+        var range,selection;
+        if(document.createRange)//Firefox, Chrome, Opera, Safari, IE 9+
+        {
+            range = document.createRange();
+            range.selectNodeContents(contentEditableElement);
+            range.setStart(contentEditableElement.firstChild, position);
+            range.setEnd(contentEditableElement.firstChild, position)
+            selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    },
+    copyTextToHiddenTextArea: function (hiddenInputName, divInput) {
+        var divText = document.getElementById(divInput);
+        divText.removeAttribute("style");
+        var hiddenInput = document.getElementsByName(hiddenInputName);
+        var finalString = divText.innerHTML;
+
+        var openDiv = /<div>/g;
+        var closeDiv = /<\/div>/g;
+        var nbsp = /&nbsp;/g;
+        var newLine = /<br>/g;
+        var styleAttr = /style=""/g;
+        var divNewLine = /<div><br><\/div>/g;
+
+        finalString = finalString.replace(divNewLine, "<br>");
+        finalString = finalString.replace(openDiv, "<br>");
+        finalString = finalString.replace(closeDiv, "");
+        finalString = finalString.replace(nbsp, " ");
+        finalString = finalString.replace(styleAttr, ""); //random style attribute gets added
+        hiddenInput[0].value = finalString;
+    },
+    checkSelectedTextOptions: function () {
+        var divsToShowTextToolbar = document.querySelectorAll("[data-showTextToolbar='true']");
+        for (var option = 0; option < divsToShowTextToolbar.length; option++) {
+            divsToShowTextToolbar[option].addEventListener('mouseup', function (e) {
+                BankMail.displaySelectedTextToolbar();
+            });
+            divsToShowTextToolbar[option].addEventListener('keyup', function (e) {
+                BankMail.displaySelectedTextToolbar();
+            });
+            divsToShowTextToolbar[option].addEventListener('touchend', function (e) {
+                BankMail.displaySelectedTextToolbar();
+            });
+        }
+    },
+    displaySelectedTextToolbar: function () {
+        //check if any text was selected
+        var selectedText = "";
+        if (typeof window.getSelection != "undefined") {
+            selectedText = window.getSelection().toString();
+        } else if (typeof document.selection != "undefined" && document.selection.type == "Text") {
+            selectedText = document.selection.createRange().text;
+        }
+        if (selectedText) {
+            var toolbar = document.getElementById("toolbar");
+            var selection = window.getSelection();
+            if (!selection.isCollapsed) {
+                var textAreaWidth = document.getElementById("emailBody").offsetWidth;
+                var selRectangle = selection.getRangeAt(0).getBoundingClientRect();
+                var left = selRectangle.left - 60;
+                //if toolbox is going to be out of the screen make it as right or left as possible
+                left = left < textAreaWidth - toolbar.offsetWidth ? left : textAreaWidth - toolbar.offsetWidth;
+                left = left > 0 ? left : 0;
+                toolbar.style.left = left + 'px';
+                toolbar.style.top = selRectangle.bottom + 20 + 'px';
+                toolbar.style.display = "grid";
+            }
+        } else {
+            var toolbar = document.getElementById("toolbar");
+            toolbar.style.display = "none";
+        }
+    },
+};

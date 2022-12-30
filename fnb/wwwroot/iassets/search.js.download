@@ -1,0 +1,71 @@
+// var Search = {
+//
+// 	toggle : function() {
+// 		var searchHeader = document.querySelector(".header-search");
+// 		var header = document.querySelector(".header-main");
+// 		var searchInput = searchHeader.querySelector("input");
+// 		Util.toggleClass(searchHeader, "visible");
+// 		if (Util.hasClass(searchHeader, "visible")) {
+// 			searchInput.value = "";
+// 			setTimeout(function() {
+// 				Util.addClass(header, 'hidden');
+// 				searchInput.focus();
+// 				//header.style.position = 'fixed';
+// 			}, 500);
+// 		} else {
+// 			Util.removeClass(header, 'hidden');
+// 			this.clear();
+// 		}
+// 	},
+//
+// 	_isMatch : function(searchTerm, eContent) {
+//
+// 		if (searchTerm.length == 0) return true;
+// 		var words = searchTerm.split(" ");
+// 		for (var x = 0; x < words.length; x++) {
+// 			if (words[x].length > 0 && eContent.indexOf(words[x]) == -1) return false;
+// 		}
+// 		return true;
+//
+// 	},
+//
+// 	apply : function(str) {
+// 		var searchTerm = str.toLowerCase().trim();
+// 		var searchGroups = document.querySelectorAll(".searchGroup");
+// 		for (var x = 0; x < searchGroups.length; x++) {
+// 			var searchItems = searchGroups[x].querySelectorAll(".searchItem");
+// 			var searchItemFound = false;
+// 			for (var y = 0; y < searchItems.length; y++) {
+// 				var searchables = searchItems[y].querySelectorAll(".searchable");
+// 				var searchableFound = false;
+// 				for (var z = 0; z < searchables.length; z++) {
+// 					if (Search._isMatch(searchTerm, searchables[z].innerHTML.toLowerCase())) {
+// 						searchableFound = true;
+// 						break;
+// 					}
+// 				}
+// 				if (searchableFound) {
+// 					searchItemFound = true;
+// 					Util.removeClass(searchItems[y], "hidden");
+//                     if(searchItems[y+1]!=null){Util.removeClass(searchItems[y+1], "hidden");
+//                         y+=1;
+//                     }
+// 				} else {
+// 					Util.addClass(searchItems[y], "hidden")
+// 				}
+// 			}
+// 			if (searchItemFound) {
+// 				Util.removeClass(searchGroups[x], "hidden");
+//                 if(searchGroups[x+1]!=null){
+// 					Util.removeClass(searchGroups[x+1], "hidden");
+//                 	}
+// 			} else {
+// 				Util.addClass(searchGroups[x], "hidden")
+// 			}
+// 		}
+// 	},
+//
+// 	clear : function() {
+// 		this.apply("");
+// 	}
+// }

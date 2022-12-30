@@ -1,0 +1,519 @@
+var IS = {
+    _pin : "",
+
+    select: function (url, inputElementId) {
+        if (url != '') {
+            document.getElementById(inputElementId).value = "true";
+            Form.submit(url);
+        }
+    },
+
+    newCaptcha: function (captchaElementId) {
+        var captchaImg = document.getElementById(captchaElementId);
+        var captchaImgSrc = captchaImg.getAttribute("src");
+        if (captchaImgSrc.indexOf("?") > -1) {
+            captchaImgSrc = captchaImgSrc.substring(0, captchaImgSrc.indexOf("?"));
+        }
+        captchaImgSrc += "?" + new Date().getTime();
+        captchaImg.setAttribute("src", captchaImgSrc);
+    },
+
+    applyRestrictionsNumeric: function (e) {
+        e.value = e.value.replace(/[^0-9]/g, "");
+
+        if (e.value.length > e.maxLength) {
+            e.value = e.value.slice(0, e.maxLength);
+        }
+    },
+
+    applyRestrictionsAmount: function (e) {
+        e.value = e.value.replace(/[^0-9.]/g, "");
+
+        if (e.value.length > e.maxLength) {
+            e.value = e.value.slice(0, e.maxLength);
+        }
+    },
+
+    applyRestrictionsAlphaNumericSpecial: function (e) {
+        e.value = e.value.replace(/[^A-Za-z0-9!@#$%^&*()_\+\=\-\{\[\}\]\\\|\;\:\'\"\,\<\.\>\/\? ]/g, "");
+
+        if (e.value.length > e.maxLength) {
+            e.value = e.value.slice(0, e.maxLength);
+        }
+    },
+
+    resizeIframe: function (iframe) {
+
+        //if(iframe.parentElement.classList.contains('scrollableContainer')){
+        var height = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+
+        headerElements = document.getElementsByClassName('header');
+        footerElements = document.getElementsByClassName('footer');
+
+        if (headerElements.length > 0) {
+            height -= headerElements[0].offsetHeight;
+        }
+        if (footerElements.length > 0) {
+            height -= footerElements[0].offsetHeight;
+        }
+        iframe.height = height;
+        MM.iOSHelpTabQuirk();
+        //}
+
+    },
+
+    //Vincent - Suggest Controller code here
+
+    requestSuggestionAdd: function () {
+
+        var elements = document.querySelectorAll('[data-suggestion]'), element;
+        for (var i = 0; i < elements.length; i++) {
+
+            element = elements[i];
+            new Awesomplete(element);
+        }
+        ;
+
+        window.removeEventListener("awesomplete-selectcomplete", IS.requestSuggestionClickHandlerForTags, false);
+        window.addEventListener("awesomplete-selectcomplete", IS.requestSuggestionClickHandlerForTags, false);
+
+    },
+
+    requestSuggestion: function (e) {
+
+        if (e.value.length > 2) {
+            var requestType = e.getAttribute("data-requestType");
+            var textKey = e.getAttribute("data-textKey");
+            var textParent = e.getAttribute("data-textParent");
+            var dataType = e.getAttribute("data-dataType");
+            var value = encodeURIComponent(e.value);
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/banking/suggest?requestType=" + requestType + "&textKey=" + textKey + "&dataType=" + dataType + "&textParent=" + textParent + "&controlId=" + e.id + "&textValue=" + value);
+            xhr.onload = IS.requestSuggentionResponseHandler.bind(xhr);
+            xhr.send();
+        }
+    },
+
+    requestSuggentionResponseHandler: function (e) {
+        var response = JSON.parse(this.responseText);
+        var control = document.getElementById(response.controlId);
+        var data = response.dataTextHTML;
+        var textList = response.dataTextOnly;
+        var idList = response.dataIds;
+        control.awesomplete.list = data;
+        control.txtList = textList;
+        control.idList = idList;
+        control.awesomplete.evaluate();
+    },
+
+    requestSuggestionClickHandlerForTags: function (e) {
+
+        if (!e.target.hasAttribute("data-tags")) return;
+
+        var itemText = e.target.value;
+        e.target.value = "";
+        var id = e.target.idList[e.target.txtList.indexOf(itemText)];
+
+        var tag = document.createElement("span");
+        tag.className = "tag";
+        tag.setAttribute("data-id", id);
+        tag.innerHTML = itemText;
+
+        tag.addEventListener("click", IS.multiSelectTagClickHandler);
+
+        var tagBox = Util.nextByClass(Util.parentByClass(e.target, "is_form_input"), "is_multi_tag_box");
+        tagBox.appendChild(tag);
+
+        IS.multiTagRefreshValue(Util.nextByClass(Util.parentByClass(e.target, "is_form_input"), "taglist-input"));
+
+    },
+
+    multiSelectTagClickHandler: function (e) {
+
+        if (Util.hasClass(e.target, "selected")) {
+            var inputField = Util.nextByClass(Util.parentByClass(e.target, "is_multi_tag_box"), "taglist-input");
+            e.target.parentElement.removeChild(e.target);
+            IS.multiTagRefreshValue(inputField);
+        } else {
+            var tags = e.target.parentNode.querySelectorAll(".tag");
+            for (var x = 0; x < tags.length; x++) {
+                Util.removeClass(tags[x], "selected");
+            }
+            Util.addClass(e.target, "selected");
+        }
+    },
+
+    multiTagRefreshValue: function (inputElement) {
+
+        var tagBox = Util.previousByClass(inputElement, "is_multi_tag_box");
+
+        var tags = tagBox.querySelectorAll(".tag");
+        var value = "";
+        for (var x = 0; x < tags.length; x++) {
+            if (value != "") value += ",";
+            value += tags[x].getAttribute("data-id");
+        }
+        inputElement.value = value;
+        console.log("New Value: " + value);
+
+    },
+
+    //Vincent - Partial Update code here
+
+    isUpdating: false,
+
+    partialUpdate: function (e) {
+        var requestType = e.getAttribute("data-dynamicRequestType");
+        if (!requestType) {
+            return;
+        }
+        var key = e.getAttribute("data-key");
+        var parent = e.getAttribute("data-parent");
+        var value = encodeURIComponent(e.value);
+        var xhr = new XMLHttpRequest();
+
+        var form = document.getElementsByTagName("form");
+
+        var elements = form[0].elements;
+        var params = "";
+        for (var i = 0, e; e = elements[i]; i++) {
+            if (e.name && !e.disabled) {
+                /**Allow unchecked checkbox to be submitted**/
+                //if (e.type == "checkbox" && !e.checked) {
+                //	continue;
+                //}
+                if (params.length > 0) {
+                    params += "&";
+                }
+                if (e.getAttribute("data-URLEncodedPassThrough") === 'true') {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(encodeURIComponent(e.value));
+                } else {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(e.value);
+                }
+            }
+        }
+
+        xhr.open("POST", "/banking/partial?requestType=" + requestType + "&parent=" + parent);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onload = IS.partialUpdateResponseHandler.bind(xhr);
+        xhr.send(params);
+    },
+
+    //Partial Update code for session replay
+
+    isUpdating: false,
+
+    partialUpdateSessionReplay: function (e) {
+        var requestType = "fester.ui.get";
+        if (!requestType) {
+            return;
+        }
+        var key = e.getAttribute("data-key");
+        var parent = e.getAttribute("data-parent");
+        var value = encodeURIComponent(e.value);
+        var xhr = new XMLHttpRequest();
+
+        var form = document.getElementsByTagName("form");
+
+        var elements = form[0].elements;
+        var params = "";
+        for (var i = 0, e; e = elements[i]; i++) {
+            if (e.name && !e.disabled) {
+                if (params.length > 0) {
+                    params += "&";
+                }
+                if (e.getAttribute("data-URLEncodedPassThrough") === 'true') {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(encodeURIComponent(e.value));
+                } else {
+                    params += encodeURIComponent(e.name) + '=' + encodeURIComponent(e.value);
+                }
+            }
+        }
+
+        xhr.open("POST", "/banking/partialUpdateWithKey?requestType=" + requestType + "&parent=" + parent);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onload = IS.partialUpdateResponseHandler.bind(xhr);
+        xhr.send(params);
+    },
+
+    partialUpdateResponseHandler: function (e) {
+
+        if (!IS.isUpdating) {
+
+            var response = JSON.parse(this.responseText);
+            var data = response.dataClean;
+
+            //Delete All Elements
+            for (dataCount = 0; dataCount < data.length; ++dataCount) {
+
+                var dataObject = data[dataCount];
+                IS.updateElement(dataObject);
+
+            }
+
+        }
+
+    },
+
+    updateElement: function (dataObject) {
+
+        //Delete dataObject from DOM
+        var elements = document.querySelectorAll("span[data-partialKey=\"" + dataObject.key + "\"]");
+        for (elementCount = 0; elementCount < elements.length; ++elementCount) {
+
+            var element = elements[elementCount];
+            element.parentNode.removeChild(element);
+
+        }
+
+        if (dataObject.visible == "true") {
+            //Insert Update/New dataObject
+            var allElements = document.querySelectorAll("span[data-partialKey]");
+            for (allElementCount = 0; allElementCount < allElements.length; ++allElementCount) {
+
+                var element = allElements[allElementCount];
+
+                var elementOrder = element.getAttribute("data-order");
+                if (parseInt(dataObject.order) <= parseInt(elementOrder)) {
+
+                    element.insertAdjacentHTML('beforebegin', dataObject.html);
+                    break;
+                }
+                else {
+                    if (allElementCount + 1 == allElements.length) {
+                        element.insertAdjacentHTML('afterend', dataObject.html);
+                        break;
+                    }
+                }
+
+            }
+        }
+
+        if (document.getElementById('controlId_' + dataObject.key)) {
+            var element = document.getElementById('controlId_' + dataObject.key);
+            var minDate = element.getAttribute('data-minDate');
+            var maxDate = element.getAttribute('data-maxDate');
+            flatpickr('[data-dateSelector="controlId_' + dataObject.key + '"]', {
+                dateFormat: 'U',
+                altInput: true,
+                altFormat: 'y-m-d',
+                minDate: minDate,
+                maxDate: maxDate
+            });
+        }
+
+    },
+
+    updateControlKey: function (e) {
+        var key = e.getAttribute("data-updatecontrolkey");
+
+        if (key != "") {
+
+            IS.isUpdating = true;
+
+            var allElements = document.querySelectorAll("[name=\"" + key + "\"]");
+            for (allElementCount = 0; allElementCount < allElements.length; ++allElementCount) {
+
+                var element = allElements[allElementCount];
+                element.value = e.value;
+
+            }
+
+            IS.isUpdating = false;
+
+        }
+
+    },
+
+    radioChange: function (e, key) {
+        var value = e.value;
+
+        var hidden = document.getElementById("hiddenRadio_" + key);
+        hidden.value = value;
+    },
+
+    toggleText: function (hiddenInputId, associatedLabelId, trueText, falseText) {
+        var hidden = document.getElementById(hiddenInputId);
+        var associatedLabel = document.getElementById(associatedLabelId);
+
+        hidden.value = hidden.value === 'false' ? 'true' : 'false';
+        associatedLabel.innerHTML = hidden.value === 'false' ? trueText : falseText;
+        associatedLabel.style.color = hidden.value === 'false' ? '#8C8C8C' : '#01AAAD';
+    },
+
+    initialseIS: function (e) {
+
+        var formInput = e.value;
+        e.setAttribute("value", formInput);
+
+    },
+
+    showPassword: function (e) {
+
+        var parent = e.parentElement.parentElement.children;
+
+        for (var child = 0; child < parent.length; child++) {
+
+            if (parent[child].className == "numericPasswordInputfield formInput" || parent[child].className == "passwordInputfield") {
+
+                if (e.getAttribute("data-visible") == "true") {
+                    parent[child].setAttribute("type", "text");
+                    e.innerText = 'HIDE';
+                    e.setAttribute("data-visible", "false");
+                }
+                else {
+                    parent[child].setAttribute("type", "password");
+                    e.innerText = 'SHOW';
+                    e.setAttribute("data-visible", "true");
+                }
+
+            }
+        }
+
+    },
+
+    resizeResult: function () {
+
+        /*Image height fix, based on footer*/
+        var footer = document.getElementsByClassName("footer");
+
+        if (footer.length > 0) {
+            var resultCont = document.getElementById("resultContainerDiv");
+            resultCont.style.height = (resultCont.clientHeight + 50) + "px";
+        }
+
+        var baseHeight = document.getElementById("base-content").clientHeight;
+        var icon = document.getElementsByTagName("form");
+        var iOS = navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false;
+
+        if (iOS) {
+
+            if (icon.length > 0) {
+                icon[0].style.height = 0;
+                var timerId = setInterval(function () {
+                    Timers.clearOne(timerId);
+                    icon[0].style.height = baseHeight + "px";
+                }, 1000);
+                Timers.register(timerId);
+            }
+        }
+    },
+    pinpadErrorText : function(element){
+        var inLineErrorPinpad = element.getAttribute("data-inLineErrorPinpad");
+        var text = document.getElementById("errorText_" + element.id);
+        var textColor = element.getAttribute("data-textColor");
+
+        if(inLineErrorPinpad !== ""){
+            text.innerHTML = inLineErrorPinpad;
+            text.className = "errorText";
+            if(textColor !== ""){
+                text.style.color = textColor;
+            }
+        }
+    },
+    pinpad  :function(element,number){
+        var pinLength = element.getAttribute("data-pinLength");
+        var setupState = element.getAttribute("data-setupState");
+        var textColor = element.getAttribute("data-textColor");
+        var submitAction = element.getAttribute("data-submitAction");
+        var submitOnDone = element.getAttribute("data-submitOnDone");
+        var salt = element.getAttribute("data-salt");
+        var textMessage = element.getAttribute("data-text");
+        var validators = element.getAttribute("data-validators");
+        var publicKey = element.getAttribute("data-publicKey");
+        var dots= document.getElementById("dots_" + element.id).children;
+        var hiddenPin = document.getElementById("hidden_" + element.id);
+        var text = document.getElementById("errorText_" + element.id);
+
+        if(setupState === ""){
+            setupState = "false";
+        }
+        if(text.className === "errorText"){
+            text.innerHTML = textMessage;
+            text.className = "normalText";
+            if(textColor !== ""){
+                text.style.color = textColor;
+            }
+        }
+        if ((number==="deleteKey") && (hiddenPin.value.length >=0)) {
+            hiddenPin.value = hiddenPin.value.slice(0,hiddenPin.value.length - 1);
+
+            if(setupState==="true") {
+                dots[hiddenPin.value.length].style.opacity="0.5";
+            }
+            else if(setupState==="false") {
+                dots[hiddenPin.value.length].style.display="none";
+            }
+        }
+        else if(hiddenPin.value.length >=0) {
+            hiddenPin.value = hiddenPin.value.concat(number);
+            if(setupState==="true") {
+                dots[hiddenPin.value.length - 1].style.opacity="1";
+            }
+            else if(setupState==="false") {
+                dots[hiddenPin.value.length - 1].style.display="inline-block";
+                dots[hiddenPin.value.length - 1].style.animation="fadeIn .15s linear";
+            }
+            if (hiddenPin.value.length == pinLength) {
+                if(submitOnDone==="true") {
+                    var status = "";
+                    if( validators != null || setupState === "true"){
+                        status = SecurityTools.regexValidator(window.atob(validators),hiddenPin.value);
+                    }
+                    else{
+                        status = "SUCCESS";
+                    }
+
+                    if (status === "SUCCESS") {
+                        var encryptedPin = "";
+                        if(salt === ""){
+                            console.log("Error no salt found");
+                        }
+                        else if(publicKey === ""){
+                            console.log("Error no public key found");
+                        }
+                        else {
+                            var saltList = salt.split(",");
+                            document.getElementById("hidden_" + element.id).setAttribute("data-count", saltList.length);
+                            for (var saltsCount = 0; saltsCount < saltList.length; saltsCount++){
+                                var saltInstance = saltList[saltsCount];
+                                saltInstance = window.atob(saltInstance);
+
+                                bCrypt.hashpw(hiddenPin.value, saltInstance, (function (element, submitAction) {
+                                    return function (hashed) {
+                                        var hiddenValue = document.getElementById("hidden_" + element.id);
+                                        //hiddenValue.value = hiddenValue.value.length > 0 ? hiddenValue.value + "," + window.btoa(hashed) : window.btoa(hashed);
+                                        hiddenValue.value = window.btoa(hashed);
+                                        var hiddenValueCount = hiddenValue.getAttribute("data-count");
+                                        hiddenValue.setAttribute("data-count", hiddenValueCount - 1);
+
+                                        if (hiddenValue.getAttribute("data-count") == 0) {
+                                            encryptedPin = SecurityTools.publicKeyInputEncryption(hiddenValue.value, window.atob(publicKey));
+                                            hiddenValue.value = encryptedPin;
+                                            Form.submit(submitAction, false);
+                                        }
+                                    }
+                                })(element, submitAction));
+                            }
+                        }
+                    } else {
+                        document.getElementById("hidden_" + element.id).value = "";
+                        text.innerHTML = status;
+                        text.className = "errorText";
+                        for (var i = 0; i < pinLength; i++){
+                            if(setupState==="true") {
+                                dots[i].style.opacity="0.5";
+                            }
+                            else if(setupState==="false") {
+                                dots[i].style.display="none";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+};

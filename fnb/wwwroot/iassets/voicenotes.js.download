@@ -1,0 +1,1003 @@
+var voicenotes = {
+
+    /** Audio Recorder **/
+
+    switchSendRecordImage: function () {
+        var imgContainer = document.querySelector('.composedMessageBtnWrap');
+        if (imgContainer == null) {
+            return;
+        }
+        var ChatType = imgContainer.getAttribute("data-imgSrcChatType");
+
+        if (ChatType != "")//Checking chat type (only P2P has recording)
+        {
+            var textBox = document.querySelector('.composedMessageTextBox');
+            var img = imgContainer.querySelector('.composedMessageBtn');
+            var send = imgContainer.getAttribute("data-imgSrcSend");
+            var record = imgContainer.getAttribute("data-imgSrcRecord");
+
+            //If composebar contains text switch between record and send button
+            if ((textBox.textContent == "" || textBox.textContent == textBox.getAttribute("data-hintText")) && (textBox.getAttribute("data-gif-url") == null || textBox.getAttribute("data-gif-url") == "")) {
+                img.src = record;
+            } else {
+                img.src = send;
+            }
+        }
+    },
+
+    switchSendRecordImagePaste: function () {
+        var imgContainer = document.querySelector('.composedMessageBtnWrap');
+        var ChatType = imgContainer.getAttribute("data-imgSrcChatType");
+        if (ChatType != "")//Checking chat type (only P2P has recording)
+        {
+            var img = imgContainer.querySelector('.composedMessageBtn');
+            var send = imgContainer.getAttribute("data-imgSrcSend");
+            var record = imgContainer.getAttribute("data-imgSrcRecord");
+            var pasteText = (event.clipboardData || event.clipboardData).getData('text');
+            //If Clipboard contains text switch between record and send button
+            if (pasteText == "" || pasteText == null) {
+                img.src = record;
+            } else {
+                img.src = send;
+            }
+        }
+    },
+
+    animateAudioRecorder: function (cancelFlag) {
+
+        //Bar Animation variables
+        var recBar = document.querySelector(".composedMessageBtnWrap");
+        var originalState = document.querySelector(".composedMessageShadow");
+        var cancel = document.querySelector(".cancelAudio");
+        var send = document.querySelector(".sendAudioBtnWrap");
+        var voiceRecordBtn = recBar.querySelector(".composedMessageBtn");
+        var leftPlusBtn = document.querySelector(".composedMessageButtonGroupLeftWrap");
+        var replyContainer = originalState.querySelector(".messageReplyContainer ");
+        var composedMessage = document.querySelector(".composedMessage ");
+
+        if (voiceRecordBtn.src.includes(recBar.getAttribute("data-imgSrcRecord")) == false) //Only run if record button pressed
+        {
+            return;
+        }
+
+        originalState.cancel = cancelFlag;
+
+        var inputSendRecording = document.querySelector(".composedMessageSendRecording");
+
+        //Check visibility to determine action
+        if (window.getComputedStyle(originalState).display == "grid")//Recording pressed
+        {
+            //Record bar animation
+            voiceRecordBtn.style.display = "none";
+
+            originalState.style.animationName = "Hide";
+            originalState.style.animationDuration = "0.5s";
+            originalState.style.animationFillMode = "forwards";
+            originalState.style.display = "none";
+
+            recBar.style.pointerEvents = "none";
+            recBar.style.display = "grid";
+            recBar.style.animationName = "ForwardRecBar";
+            recBar.style.animationDuration = "0.4s";
+            recBar.style.animationFillMode = "forwards"; //Stops reset
+
+            if (leftPlusBtn != null) //checking if + button sent
+            {
+                leftPlusBtn.style.display = "none";
+            }
+
+            originalState.permissionBasedAnimation = setTimeout(//Wait for animation
+                function () {
+                    cancel.style.display = "inline";
+                    send.style.display = "inline";
+
+                    //Add reply container back onto composebar after animation
+                    if(replyContainer != null){
+                        recBar.replyContainer = replyContainer.cloneNode(true);
+                        composedMessage.appendChild(recBar.replyContainer);
+                        recBar.replyContainer.style.gridColumn = "3";
+                    }
+                }, 400);
+
+            //Record & Sound Visualizer
+
+            var SoundVisualizer = document.createElement("canvas");
+            SoundVisualizer.className = "soundVisualizer";
+
+            var VisualizerContext = SoundVisualizer.getContext("2d");
+            recBar.appendChild(SoundVisualizer);
+
+            voicenotes.recordingVoiceNote(SoundVisualizer, VisualizerContext, originalState, cancelFlag);//Handles recording and sound visualization
+
+        } else if (cancelFlag != null)//cancel pressed
+        {
+            /*Elton Aly: This has been commented out due to Chrome/Safari mismatch
+            * possibly for future use when safari fully implements audio recorder API*/
+
+            //Stop recording and cancel : fires of event listener in MM.recordingVoiceNote
+            /* if (typeof window.MediaRecorder == "undefined")//for ios
+             {*/
+            //Disconnect and stop recording (remove red bar on ios)
+
+            if (originalState.Stream != null) {
+                streamTracks = originalState.Stream.getTracks();
+
+                for (var i = 0; i < streamTracks.length; i++) {
+                    streamTracks[i].stop();
+                }
+
+                originalState.Stream = null;
+
+                if (originalState.ProcessorNode != null) {
+                    originalState.ProcessorNode.removeEventListener("audioprocess", originalState.TempFunc);
+                    originalState.ProcessorNode.disconnect();
+                }
+
+                originalState.AContext.close();
+                originalState.AContext = null;
+            }
+
+            /*Elton Aly: This has been commented out due to Chrome/Safari mismatch
+    * possibly for future use when safari fully implements audio recorder API*/
+
+            /* }else
+             {
+                 //Stop recording
+                 if(originalState.mediaRecorder != "undefined")
+                 {
+                     originalState.mediaRecorder.stop();
+
+                     originalState.AContext.close();
+                     originalState.AContext = null;
+
+                 }
+
+             }*/
+
+            if(replyContainer != null){
+                composedMessage.removeChild(recBar.replyContainer);
+                recBar.replyContainer.style.gridColumn = "";
+            }
+
+            recBar.style.display = "inline";
+
+            clearInterval(recBar.voiceNoteCounterID);
+
+            if (cancelFlag == "PermissionDenied") {
+                clearTimeout(originalState.permissionBasedAnimation);
+            }
+
+            recBar.removeChild(recBar.lastChild);
+
+            if (cancelFlag != "PermissionDenied")//voicenote timer is not appeneded if permision denied 2nd time around
+            {
+                recBar.removeChild(recBar.lastChild);
+            }
+
+            recBar.style.animationName = "BackRecBar";
+            recBar.style.animationDuration = "0.4s";
+            recBar.style.animationFillMode = "forwards";
+
+            originalState.style.animationName = "Show";
+            originalState.style.animationDuration = "0.4s";
+            originalState.style.animationFillMode = "forwards";
+
+            cancel.style.display = "none";
+            send.style.display = "none";
+
+            setTimeout(//Wait for animation
+                function () {
+                    originalState.style.display = "grid";
+                    voiceRecordBtn.style.display = "inline";
+                    recBar.style.display = "inline";
+                    recBar.style.pointerEvents = "auto"; //make clickable
+
+                    if (leftPlusBtn != null) {
+                        leftPlusBtn.style.display = "grid";
+                    }
+                }, 500);
+
+        } else if (window.getComputedStyle(originalState).display == "none")//Send recording pressed; Reverse Animation
+        {
+
+            /*Elton Aly: This has been commented out due to Chrome/Safari mismatch
+            * possibly for future use when safari fully implements audio recorder API*/
+
+            /*if (typeof window.MediaRecorder == "undefined")//for ios
+            {*/
+            /////////Compile into blob(encode)/////////////////////
+
+            var bufferLength = originalState.AudioChunks.length ? originalState.AudioChunks[0].length : 0;
+            var length = originalState.AudioChunks.length * bufferLength;
+            var aac = new Uint8Array(44 + length);
+
+            var view = new DataView(aac.buffer);
+
+            // RIFF identifier 'RIFF'
+            view.setUint32(0, 1380533830, false);
+            // file length minus RIFF identifier length and file description length
+            view.setUint32(4, 36 + length, true);
+            // RIFF type 'WAVE'
+            view.setUint32(8, 1463899717, false);
+            // format chunk identifier 'fmt '
+            view.setUint32(12, 1718449184, false);
+            // format chunk length
+            view.setUint32(16, 16, true);
+            // sample format (raw)
+            view.setUint16(20, 1, true);
+            // channel count
+            view.setUint16(22, 1, true);
+            // sample rate
+            view.setUint32(24, originalState.SampleRate, true);
+            // byte rate (sample rate * block align)
+            view.setUint32(28, originalState.SampleRate * 2, true);
+            // block align (channel count * bytes per sample)
+            view.setUint16(32, 2, true);
+            // bits per sample
+            view.setUint16(34, 8 * 2, true);
+            // data chunk identifier 'data'
+            view.setUint32(36, 1684108385, false);
+            // data chunk length
+            view.setUint32(40, length, true);
+
+            for (var i = 0; i < originalState.AudioChunks.length; i++) {
+                aac.set(originalState.AudioChunks[i], i * bufferLength + 44)
+            }
+
+            /////////Compile encode/////////////////////
+
+            var msg = [aac.buffer];
+            originalState.AudioChunks = [msg[0]];
+
+            //////////////////////////
+            //Disconnect and stop recording (remove red bar on ios)
+            streamTracks = originalState.Stream.getTracks();
+
+            for (var i = 0; i < streamTracks.length; i++) {
+                streamTracks[i].stop();
+            }
+
+            originalState.Stream = null;
+
+            originalState.ProcessorNode.removeEventListener("audioprocess", originalState.TempFunc);
+
+            originalState.ProcessorNode.disconnect();
+
+            originalState.AContext.close();
+            originalState.AContext = null;
+            ////////////////////////
+
+            //Send/Upload
+
+            var inputSendRecording = document.querySelector(".composedMessageSendRecording");
+            var subElement = inputSendRecording.getAttribute("data-recorderIconId");
+
+            voicenotes.recordingUploadFilesNative(inputSendRecording, originalState, subElement);
+
+            /*Elton Aly: This has been commented out due to Chrome/Safari mismatch
+        * possibly for future use when safari fully implements audio recorder API*/
+
+            /*}else
+            {
+                //Stop recording and send : fires of event listener in MM.recordingVoiceNote
+                originalState.mediaRecorder.stop();
+
+                originalState.AContext.close();
+                originalState.AContext = null;
+
+            }*/
+
+            recBar.style.display = "inline";
+
+            clearInterval(recBar.voiceNoteCounterID);
+
+            recBar.removeChild(recBar.lastChild);//Counter
+            recBar.removeChild(recBar.lastChild);//Canvas
+
+
+            //Waiting on upload animation
+            var rootUnit = (Root.unit());
+
+            var SoundVisualizer = document.createElement("canvas");
+            SoundVisualizer.className = "uploadingSoundVisualizer";
+
+            var VisualizerContext = SoundVisualizer.getContext("2d");
+            recBar.appendChild(SoundVisualizer);
+
+            var VisualizerHeight = SoundVisualizer.height;
+            var VisualizerWidth = SoundVisualizer.width;
+
+            //Drawing variables
+            var numberOfBars = 5;
+            var totalWorkingSpace = VisualizerWidth / numberOfBars;
+            var BarWidth = totalWorkingSpace * 0.7;
+            var XLeftBarPosition = 0;  //Start at beginning
+            var DotSeperartion = totalWorkingSpace * 0.3;
+            var ArcRadius = BarWidth / 2;
+
+            var opacity = [1, 0.8, 0.6, 0.4, 0.2];
+
+            function Visualize() {
+                XLeftBarPosition = 0;
+
+                VisualizerContext.fillStyle = window.getComputedStyle(SoundVisualizer).color;
+                VisualizerContext.fillRect(0, 0, VisualizerWidth, VisualizerHeight);//Clear
+
+                for (var i = 0; i < 5; i++) //Draw
+                {
+                    VisualizerContext.beginPath();
+
+                    VisualizerContext.arc(XLeftBarPosition + ArcRadius, VisualizerHeight / 2, ArcRadius, 0, 2 * Math.PI);
+
+                    VisualizerContext.fillStyle = "rgba(255, 255, 255, " + opacity[i] + ")";
+                    VisualizerContext.fill();
+                    XLeftBarPosition += BarWidth + DotSeperartion;
+                }
+
+                if (originalState.partialUpdate == null) {
+                    //Shifting values in array to the left
+
+                    var Temp1 = opacity[0];
+                    var Temp2 = opacity[1];
+                    var Temp3 = opacity[2];
+                    var Temp4 = opacity[3];
+                    var Temp5 = opacity[4];
+
+                    opacity[0] = Temp5;
+                    opacity[1] = Temp1;
+                    opacity[2] = Temp2;
+                    opacity[3] = Temp3;
+                    opacity[4] = Temp4;
+
+                    setTimeout(//slow down animation
+                        function () {
+                            requestAnimationFrame(Visualize);//Recursively call
+                        }
+                        , 100);
+
+                } else//Stop animation
+                {
+                    recBar.removeChild(recBar.lastChild);//Canvas
+
+                    recBar.style.animationName = "BackRecBar";
+                    recBar.style.animationDuration = "1s";
+                    recBar.style.animationFillMode = "forwards";
+
+                    originalState.style.animationName = "Show";
+                    originalState.style.animationDuration = "0.4s";
+                    originalState.style.animationFillMode = "forwards";
+
+                    cancel.style.display = "none";
+                    send.style.display = "none";
+
+                    setTimeout(//Wait for animation
+                        function () {
+                            originalState.style.display = "grid";
+                            voiceRecordBtn.style.display = "inline";
+                            recBar.style.display = "inline";
+                            recBar.style.pointerEvents = "auto"; //make clickable
+
+                            if (leftPlusBtn != null) {
+                                leftPlusBtn.style.display = "grid";
+                            }
+
+                        }, 800);
+                }
+            }
+
+            Visualize();
+
+        }
+    },
+
+    recordingVoiceNote: function (SoundVisualizer, VisualizerContext, originalState) {
+
+        var recBar = document.querySelector(".composedMessageBtnWrap");
+
+        //Voice note timer variables
+        var voiceNoteCounter = 0;
+        var voiceNoteTimer = document.createElement("small");
+
+        //Recording variables
+        var rootUnit = (Root.unit());
+        var AudioChunks = [];
+        //var mediaRecorder;
+
+        //Stop recording on max size variables
+        var inputSendRecording = document.querySelector(".composedMessageSendRecording");
+        var maxSize = inputSendRecording.getAttribute("data-maxFileSize");
+        var payload;
+
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+        var AContext;
+
+        navigator.mediaDevices.getUserMedia({audio: true})
+            .then(function (stream) {
+                //Everything happens within context
+                AContext = new AudioContext();
+
+                originalState.AContext = AContext;
+                var inputStreamNode = AContext.createMediaStreamSource(stream);
+
+                /*Elton Aly: This has been commented out due to Chrome/Safari mismatch
+            * possibly for future use when safari fully implements audio recorder API*/
+
+                /*  if (typeof window.MediaRecorder == "undefined")//for ios
+                  { */
+
+                //linking variables to html object cancel (mediaRecorder, AudioChunks)
+                originalState.Stream = stream;
+                originalState.SampleRate = AContext.sampleRate;
+                originalState.AudioChunks = AudioChunks;
+
+                var processorNode = AContext.createScriptProcessor(2048, 1, 1); // TODO: Get the number of channels from mic
+
+                var destinationNode = AContext.createMediaStreamDestination();
+
+
+                var AContext = inputStreamNode.context;
+
+                inputStreamNode.connect(processorNode);
+
+                originalState.ProcessorNode = processorNode;
+                originalState.ProcessorNode.addEventListener("audioprocess", TempFunc);
+
+                function TempFunc(e) {
+                    var a = e.inputBuffer.getChannelData(0);
+                    ///////Encode//////////////////////
+
+                    var length = a.length;
+                    var data = new Uint8Array(length * 2);
+                    for (var i = 0; i < length; i++) {
+                        var index = i * 2;
+                        var sample = a[i];
+                        if (sample > 1) {
+                            sample = 1
+                        } else if (sample < -1) {
+                            sample = -1
+                        }
+                        sample = sample * 32768;
+                        data[index] = sample;
+                        data[index + 1] = sample >> 8;
+                    }
+                    AudioChunks.push(data);
+                    originalState.AudioChunks = AudioChunks;
+
+                    //Stop recording on max size
+
+                    payload = new Blob(originalState.AudioChunks, {'type': 'audio/wav'});
+
+                    if (payload.size > (maxSize - 5000)) {
+                        clearInterval(recBar.voiceNoteCounterID);
+                        alert("Reached max size: either cancel or send current recording");
+                        originalState.ProcessorNode.removeEventListener("audioprocess", TempFunc);
+                    }
+                };
+
+                processorNode.connect(destinationNode);
+                originalState.TempFunc = TempFunc;
+
+                /*}*/
+
+                //Only begin counting once recording has started
+                //Voice Note timer
+                voiceNoteTimer.className = "voiceNoteTimer";
+                voiceNoteTimer.innerHTML = "0:00";
+                recBar.appendChild(voiceNoteTimer);
+
+                recBar.voiceNoteCounterID = setInterval(
+                    function () {
+                        voiceNoteCounter++;
+                        var Seconds = voiceNoteCounter % 60; //Get temp Seconds
+                        var Minutes = Math.floor(voiceNoteCounter / 60); //Get temp Minutes
+                        if (Seconds < 10) //While still single digit number add 0
+                        {
+                            voiceNoteTimer.innerHTML = Minutes + ":0" + Seconds.toFixed(0);
+                        } else {
+                            voiceNoteTimer.innerHTML = Minutes + ":" + Seconds.toFixed(0);
+                        }
+                    }, 1000);
+
+
+                /*Elton Aly: This has been commented out due to Chrome/Safari mismatch
+            * possibly for future use when safari fully implements audio recorder API*/
+
+                /*if (typeof window.MediaRecorder != "undefined")//for other browsers
+                {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+
+                    //linking variables to html object cancel (mediaRecorder, AudioChunks)
+                    originalState.mediaRecorder = mediaRecorder;
+
+                }*/
+
+
+                //------------------Audio Visualizer----------------------------//
+                //Everything happens within audio context
+
+                //var ASrc = AContext.createMediaStreamSource(stream);
+                var AAnalyser = AContext.createAnalyser();
+                inputStreamNode.connect(AAnalyser);
+
+                //The selected FFT size directly affects the resolution of the resulting spectra.  The number of spectral lines is always 1/2 of the selected FFT size.  Thus a 1024 point FFT produces 512 output spectral lines.
+                AAnalyser.fftSize = 2048; //Must be a power of 2.
+                var SpectraLength = AAnalyser.frequencyBinCount; //An 8-bit unsigned integer, equal to the number of values that AnalyserNode.getByteFrequencyData() and AnalyserNode.getFloatFrequencyData() copy into the provided TypedArray
+                var dataArray = new Uint8Array(SpectraLength);
+                var VisualizerHeight = SoundVisualizer.height;
+                var VisualizerWidth = SoundVisualizer.width;
+
+                //Drawing variables
+                var numberOfBars = 5;
+                var totalWorkingSpace = VisualizerWidth / numberOfBars;
+                var BarWidth = totalWorkingSpace * 0.7;
+                var XLeftBarPosition = 0;  //Start at beginning
+                var DotSeperartion = totalWorkingSpace * 0.3;
+                var ArcRadius = BarWidth / 2;
+                var MaxUpDown = (VisualizerHeight / 2);
+
+                //Select which 5 spectra lines to display
+                var HertzSelector = [280, 290, 310, 300, 280];
+
+                function Visualize() {
+
+                    XLeftBarPosition = 0;
+                    AAnalyser.getByteFrequencyData(dataArray); //Produces 8-bit unsigned integers
+
+                    VisualizerContext.fillStyle = window.getComputedStyle(SoundVisualizer).color;
+                    VisualizerContext.fillRect(0, 0, VisualizerWidth, VisualizerHeight);//Clear
+
+                    for (var i = 0; i < HertzSelector.length; i++) //Draw
+                    {
+                        BarHeight = dataArray[HertzSelector[i]];
+                        VisualizerContext.beginPath();
+
+                        //XLeftBarPosition gives center. Add half width to get center to middle of line. Same applies for height
+                        if (BarHeight <= ArcRadius) //draw default circle
+                        {
+                            VisualizerContext.arc(XLeftBarPosition + ArcRadius, VisualizerHeight / 2, ArcRadius, 0, 2 * Math.PI);
+
+                        } else //if(BarHeight < MaxUpDown)//Cap at max height
+                        {
+                            if (BarHeight / 2 < MaxUpDown) {
+                                // X        Y          R    startingAngle        endingAngle
+                                VisualizerContext.arc(XLeftBarPosition + ArcRadius, (VisualizerHeight / 2) - BarHeight / 2, ArcRadius, 1 * Math.PI, 0);//Top Semi Circle
+                                VisualizerContext.arc(XLeftBarPosition + ArcRadius, (VisualizerHeight / 2) + BarHeight / 2, ArcRadius, 0, 1 * Math.PI);//Bottom Semi Circle
+                            } else {
+                                VisualizerContext.arc(XLeftBarPosition + ArcRadius, (VisualizerHeight / 2) - (MaxUpDown - 20), ArcRadius, 1 * Math.PI, 0);//Top Semi Circle
+                                VisualizerContext.arc(XLeftBarPosition + ArcRadius, (VisualizerHeight / 2) + (MaxUpDown - 20), ArcRadius, 0, 1 * Math.PI);//Bottom Semi Circle
+                            }
+                        }
+
+                        VisualizerContext.fillStyle = "#ffffff";
+                        VisualizerContext.fill();
+                        XLeftBarPosition += BarWidth + DotSeperartion;
+                    }
+
+                    if (window.getComputedStyle(originalState).display == "none") {
+                        requestAnimationFrame(Visualize);//Recursively call
+
+                    } else//Stop animation
+                    {
+                        VisualizerContext.fillRect(0, 0, VisualizerWidth, VisualizerHeight);//Clear
+                        return;
+                    }
+                }
+
+                //Only start visualizer animations once initial animation is done
+                setTimeout(
+                    function () {
+                        Visualize();
+                    }, 700);
+
+                //------------------------Event listeners for recording-------------------------------------//
+                /*Elton Aly: This has been commented out due to Chrome/Safari mismatch
+            * possibly for future use when safari fully implements audio recorder API*/
+
+                /*   if (typeof window.MediaRecorder != "undefined")//for other browsers
+                   {
+                       mediaRecorder.addEventListener("dataavailable", function (event)
+                       {
+                           AudioChunks.push(event.data);
+                           originalState.AudioChunks = AudioChunks;
+                       });
+
+                       mediaRecorder.addEventListener("stop", function ()
+                       {
+
+                           if(originalState.cancel != null)
+                           {
+                               //Do nothing
+                           }else
+                           {
+                               var inputSendRecording = document.querySelector(".composedMessageSendRecording");
+                               var subElement = inputSendRecording.getAttribute("data-recorderIconId");
+
+                               MM.recordingUploadFilesNative(inputSendRecording, originalState, inputSendRecording, subElement);
+
+                           }
+
+                       });
+                   } */
+
+            }).catch(function () {
+            alert("Please allow microphone access to make use of this feature");
+            voicenotes.animateAudioRecorder("PermissionDenied");
+        });
+
+    },
+
+    recordingUploadFilesNative: function (input, originalState, subElementKey) {
+
+        var payload = new Blob(originalState.AudioChunks, {'type': 'audio/wav'});
+
+        var reader = new FileReader();
+        reader.readAsDataURL(payload);
+
+        reader.onload = (function (e) {
+
+            var data = e.target.result;
+            var payload = data.split(',')[1];
+
+
+            var xhr = new XMLHttpRequest();
+
+            var today = new Date();
+            var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+            var time = today.getHours() + "-" + today.getMinutes() + "-" + today.getSeconds();
+            var dateTime = input.getAttribute('data-fileNamePrefix') + date + '--' + time;
+
+
+            xhr.open("POST", "/banking/thingUpload?host=" + input.getAttribute('data-ip') + "&port=" + input.getAttribute('data-port') +
+                "&userName=" + input.getAttribute('data-userName') + "&password=" + input.getAttribute('data-password') +
+                "&fileName=" + dateTime + ".wav" + "&filePrefix=" + input.getAttribute('data-fileNamePrefix') +
+                "&maxSize=" + input.getAttribute('data-maxFileSize'));
+
+            xhr.send(payload);
+
+            xhr.addEventListener("load", function (evt) {
+
+                var responseJson = JSON.parse(evt.currentTarget.responseText);
+
+                if (responseJson.returnInfo === "success") {
+
+                    var newInput = document.createElement("input");
+                    newInput.name = input.id + ":" + input.getAttribute('data-recorderIconId');
+                    newInput.value = responseJson.returnHash;
+                    newInput.style.display = "none";
+
+                    input.parentNode.appendChild(newInput);
+
+                    if (input.attributes.type.value == "SUBMITFE") {
+                        MM.partialUpdateSubElementKeyFrontEnd(input, subElementKey);
+                    } else {
+                        MM.partialUpdateSubElementKey(input, subElementKey);
+                    }
+
+                    originalState.partialUpdate = "Partial update complete";
+                    newInput.parentNode.removeChild(newInput);
+
+                } else {
+
+                    alert(responseJson.returnInfo);
+                    originalState.partialUpdate = "Partial update complete";
+                }
+
+            }, true);
+
+        });
+
+    },
+
+    /** End of Audio Recorder **/
+
+    /** Audio Player **/
+
+    autoDownloadVNs: function () {
+
+        var audioContainers = document.querySelectorAll(".audioPlayerContainer");
+
+        if (audioContainers.length <= 0) {
+            return;
+        }
+
+        audioContainers.forEach(function (audioPlayerContainer) {
+
+            var downloaded = audioPlayerContainer.getAttribute("data-downloaded");
+
+            //Only download once
+            if(downloaded == "false"){
+                audioPlayerContainer.setAttribute("data-downloaded", "true");
+
+                var composedMessageBtn = document.querySelector('.composedMessageBtn');
+                var audioPlayer = audioPlayerContainer.querySelector(".audioPlayer");
+                var audioPlayerBtn = audioPlayerContainer.querySelector(".audioPlayerBtn");
+                var playSrc = audioPlayer.getAttribute("data-imgSrcPlay");
+                var pauseSrc = audioPlayer.getAttribute("data-imgSrcPause");
+                var downloadFile = audioPlayerContainer.getAttribute("data-downloadFile");
+                var key = audioPlayerContainer.getAttribute("data-value");
+                var downloadCancelIconId = audioPlayer.getAttribute("data-imgSrcDownloadCancel");
+
+                //Download
+                var xhr = new XMLHttpRequest();
+                audioPlayerBtn.xhr = xhr;
+
+                audioPlayerBtn.src = downloadCancelIconId;
+
+                //Download file
+
+                var FetchedSound = document.createElement("audio");
+                composedMessageBtn.appendChild(FetchedSound);
+
+                xhr.open("GET", downloadFile);
+
+                xhr.responseType = "blob";
+                xhr.send();
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        audioPlayerContainer.uniqueID = key;
+
+                        var blob = new Blob([xhr.response], {type: "audio/wav"});
+                        FetchedSound.src = URL.createObjectURL(blob);
+
+                        //linking variable to html object to hold its state
+                        audioPlayer.FetchedSound = FetchedSound;
+
+                        audioPlayer.FetchedSound.onloadedmetadata = function () {
+                            audioPlayer.FetchedSound.currentTime = 9999999999999;//Handle chrome bug
+
+                            if ((isNaN(audioPlayer.FetchedSound.duration) == true) || audioPlayer.FetchedSound.duration == Infinity) {
+                                audioPlayer.FetchedSound.ondurationchange = function () {
+                                    voicenotes.setProgressBar(audioPlayer, audioPlayerContainer, playSrc, pauseSrc, audioPlayerBtn, key);
+                                    audioPlayerBtn.src = playSrc;
+                                };
+
+                            } else {
+
+                                voicenotes.setProgressBar(audioPlayer, audioPlayerContainer, playSrc, pauseSrc, audioPlayerBtn, key);
+                                audioPlayerBtn.src = playSrc;
+                            }
+                        }
+                    }
+                };
+            }
+        });
+    },
+
+    playPauseRecording: function (downloadFile, key) {
+
+        var audioPlayerContainer = document.getElementById(key);//using key (value) from xml to separately identify each audio player
+
+        //Enforcing can't play two vns at a time
+        var composedMessageBtn = document.querySelector('.composedMessageBtn');
+        var composeMessageBar = document.querySelector('.composedMessageBtnWrap');
+        var isOtherPlaying = composeMessageBar.getAttribute("data-pausePlay");
+
+        var audioPlayer = audioPlayerContainer.querySelector(".audioPlayer");
+        var audioPlayerBtn = audioPlayerContainer.querySelector(".audioPlayerBtn");
+        var playSrc = audioPlayer.getAttribute("data-imgSrcPlay");
+        var pauseSrc = audioPlayer.getAttribute("data-imgSrcPause");
+
+        //Image src's
+        var DownloadIcon = audioPlayer.getAttribute("data-imgSrcDownload");
+        var downloadCancelIconId = audioPlayer.getAttribute("data-imgSrcDownloadCancel");
+
+        if (audioPlayerBtn.src.includes(DownloadIcon) == true)//Download pressed
+        {
+            var xhr = new XMLHttpRequest();
+            audioPlayerBtn.xhr = xhr;
+
+            audioPlayerBtn.src = downloadCancelIconId;
+
+            //Download file
+
+            var FetchedSound = document.createElement("audio");
+            composedMessageBtn.appendChild(FetchedSound);
+
+            xhr.open("GET", downloadFile);
+
+            xhr.responseType = "blob";
+            xhr.send();
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    audioPlayerContainer.uniqueID = key;
+
+                    var blob = new Blob([xhr.response], {type: "audio/wav"});
+                    FetchedSound.src = URL.createObjectURL(blob);
+
+                    //linking variable to html object to hold its state
+                    audioPlayer.FetchedSound = FetchedSound;
+
+                    audioPlayer.FetchedSound.onloadedmetadata = function () {
+                        audioPlayer.FetchedSound.currentTime = 9999999999999;//Handle chrome bug
+
+                        if ((isNaN(audioPlayer.FetchedSound.duration) == true) || audioPlayer.FetchedSound.duration == Infinity) {
+                            audioPlayer.FetchedSound.ondurationchange = function () {
+                                voicenotes.setProgressBar(audioPlayer, audioPlayerContainer, playSrc, pauseSrc, audioPlayerBtn, key);
+                                audioPlayerBtn.src = playSrc;
+                            };
+
+                        } else {
+
+                            voicenotes.setProgressBar(audioPlayer, audioPlayerContainer, playSrc, pauseSrc, audioPlayerBtn, key);
+                            audioPlayerBtn.src = playSrc;
+                        }
+                    }
+                }
+            };
+
+        } else if (audioPlayerBtn.src.includes(playSrc) == true) //Play pressed
+        {
+            //Enforcing can't play two vns at a time
+            if (isOtherPlaying == "")//Nothing is playing
+            {
+                composeMessageBar.setAttribute("data-pausePlay", key);
+                composeMessageBar.correctImgSrc = playSrc;
+
+            } else if (isOtherPlaying != "")//Something is playing
+            {
+                var playingAudioPlayerContainer = document.getElementById(isOtherPlaying);
+                var playingAudioPlayer = playingAudioPlayerContainer.querySelector(".audioPlayer");
+                var playingAudioPlayerBtn = playingAudioPlayerContainer.querySelector(".audioPlayerBtn");
+                playingAudioPlayer.FetchedSound.pause();
+
+                playingAudioPlayerBtn.src = composeMessageBar.correctImgSrc;
+                composeMessageBar.correctImgSrc = playSrc;
+
+                composeMessageBar.setAttribute("data-pausePlay", key);
+            }
+
+            audioPlayerBtn.src = pauseSrc;
+
+            audioPlayer.FetchedSound.play();
+
+            //Handling 1st time play
+            if (audioPlayerContainer.getAttribute("data-FirstPlay") == "true") {
+                audioPlayer.FetchedSound.currentTime = 0;
+                audioPlayerContainer.setAttribute("data-FirstPlay", "false")
+            }
+
+        } else if (audioPlayerBtn.src.includes(pauseSrc) == true)//Pause pressed
+        {
+            audioPlayerBtn.src = playSrc;
+            audioPlayer.FetchedSound.pause();
+            composeMessageBar.setAttribute("data-pausePlay", "");
+
+        } else if (audioPlayerBtn.src.includes(downloadCancelIconId) == true)//Cancel pressed
+        {
+            audioPlayerBtn.xhr.abort();
+            audioPlayerBtn.src = DownloadIcon;
+        }
+    },
+
+    setProgressBar: function (audioPlayer, audioPlayerContainer, playSrc, pauseSrc, audioPlayerBtn, key) {
+
+        var ProgressBar = audioPlayerContainer.querySelector(".audioPlayerProgressBar");
+        var Seconds;
+        var Minutes;
+        var LeftColor = ProgressBar.getAttribute("data-barLeftColour");
+        var RightColor = ProgressBar.getAttribute("data-barColour");
+        var barStyle = audioPlayerContainer.querySelector(".SeekerStyle");
+
+        Seconds = audioPlayer.FetchedSound.duration % 60; //Get Seconds
+        Minutes = Math.floor(audioPlayer.FetchedSound.duration / 60); //Get Minutes
+
+        //sends totalTime to be stored on the FE messaging side once per session
+        var keyToSaveTotalTime = audioPlayer.getAttribute("data-keyToSaveTotalTime");
+        if (keyToSaveTotalTime != null && keyToSaveTotalTime != "") {
+
+            var totalTime = "0:00";
+            if (Seconds < 9.5) {
+                totalTime = Minutes + ":0" + Seconds.toFixed(0);
+            } else {
+                totalTime = Minutes + ":" + Seconds.toFixed(0);
+            }
+
+
+            var messageId = audioPlayer.getAttribute("data-originalMessageId");
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = messageId + "_totalTimeForAudio";
+            input.value = totalTime;
+            audioPlayer.parentElement.appendChild(input);
+            MM._partialUpdateFrontEnd(audioPlayer, keyToSaveTotalTime, null);
+
+            audioPlayer.parentElement.removeChild(input);
+
+            //check for messages that replied to this audio and update the time on the reply bubble
+            var selector = "." + audioPlayer.getAttribute("data-validMessageId");
+            var elements = document.querySelectorAll(selector);
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].innerHTML = "Voice message (" + totalTime + ")";
+            }
+
+        }
+
+        audioPlayerContainer.querySelector(".audioPlayerTime").innerHTML = "0:00";
+        audioPlayerContainer.querySelector(".audioPlayerProgressBar").max = audioPlayer.FetchedSound.duration;
+        audioPlayer.FetchedSound.currentTime = 0; //Start it at beginning
+
+        audioPlayer.FetchedSound.ontimeupdate = function ()   //Overwrites first event handler, handles reset to 0
+        {
+
+            Seconds = audioPlayer.FetchedSound.currentTime % 60; //Get temp Seconds
+            Minutes = Math.floor(audioPlayer.FetchedSound.currentTime / 60); //Get temp Minutes
+            audioPlayerContainer.querySelector(".audioPlayerProgressBar").value = audioPlayer.FetchedSound.currentTime;//link audio and progressbar
+
+            if (Seconds < 9.5)//While still single digit number add 0
+            {
+                audioPlayerContainer.querySelector(".audioPlayerTime").innerHTML = Minutes + ":0" + Seconds.toFixed(0);
+            } else {
+                audioPlayerContainer.querySelector(".audioPlayerTime").innerHTML = Minutes + ":" + Seconds.toFixed(0);
+            }
+
+            //------------------Seeker color---------------------------//
+
+            var TranslatedSeekerValue = ((ProgressBar.value / audioPlayer.FetchedSound.duration) * 100);
+            barStyle.innerHTML = '#' + key + ' .audioPlayerBarContainer input[type=range]::-webkit-slider-runnable-track {background: linear-gradient(to right, ' + LeftColor + ', ' + LeftColor + ' ' + TranslatedSeekerValue + '%, ' + RightColor + ' ' + TranslatedSeekerValue + '%, ' + RightColor + ');  }';
+            //firefox
+            barStyle.innerHTML += ' #' + key + ' .audioPlayerBarContainer input[type=range]::-moz-range-track {background: linear-gradient(to right, ' + LeftColor + ', ' + LeftColor + ' ' + TranslatedSeekerValue + '%, ' + RightColor + ' ' + TranslatedSeekerValue + '%, ' + RightColor + ');  }';
+
+            //---------------------------------------------------------//
+        };
+
+        audioPlayer.FetchedSound.onended = function ()//Restart When Done
+        {
+            audioPlayer.FetchedSound.pause();
+            audioPlayer.FetchedSound.currentTime = 0;
+            audioPlayerContainer.querySelector(".audioPlayerProgressBar").value = 0;
+            audioPlayerBtn.src = playSrc;
+        };
+
+        /////////////////////////////////////////////////////////////////
+        //Click and drag sound (Seeking)
+
+        //Pause then play to smooth animation
+
+        ProgressBar.ontouchstart = function () {
+            audioPlayer.FetchedSound.pause();
+            audioPlayerBtn.src = playSrc;
+        };
+
+
+        ProgressBar.ontouchend = function () {
+            var composeMessageBar = document.querySelector('.composedMessageBtnWrap');
+            var isOtherPlaying = composeMessageBar.getAttribute("data-pausePlay");
+
+            //Enforcing can't play two vns at a time
+            if (isOtherPlaying == "")//Nothing is playing
+            {
+                composeMessageBar.setAttribute("data-pausePlay", key);
+                composeMessageBar.correctImgSrc = playSrc;
+
+            } else if (isOtherPlaying != "")//Something is playing
+            {
+                var playingAudioPlayerContainer = document.getElementById(isOtherPlaying);
+                var playingAudioPlayer = playingAudioPlayerContainer.querySelector(".audioPlayer");
+                var playingAudioPlayerBtn = playingAudioPlayerContainer.querySelector(".audioPlayerBtn");
+                playingAudioPlayer.FetchedSound.pause();
+
+                playingAudioPlayerBtn.src = composeMessageBar.correctImgSrc;
+                composeMessageBar.correctImgSrc = playSrc;
+
+                composeMessageBar.setAttribute("data-pausePlay", key);
+            }
+
+            audioPlayer.FetchedSound.play();
+            audioPlayerBtn.src = pauseSrc;
+
+        };
+
+        ProgressBar.oninput = function () {
+            var Percent = ProgressBar.value / audioPlayer.FetchedSound.duration;
+            audioPlayer.FetchedSound.currentTime = Percent * audioPlayer.FetchedSound.duration;
+        };
+
+    },
+
+    /** End of Audio Player **/
+
+};

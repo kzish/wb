@@ -1,0 +1,500 @@
+var BIB = {
+    playbackRate: 0,
+    audioTimer: "",
+    chapterDetails: "",
+    chapterDetailsCount: "",
+    currentTime: 0,
+    durationTotal: 0,
+    progressBarPercentage: 0,
+    previousDurations: 0,
+    progressBarDurationStart: 0,
+    pauseId: "",
+    playId: "",
+    mediaToken : "",
+    audioSource: "",
+    wasPlaying : false,
+    isEnd : null,
+    streamAudio: function (anchorPillButton) {
+        var alternativeTextColour = anchorPillButton.getAttribute("data-alternativeTextColour");
+        var alternativeText = anchorPillButton.getAttribute("data-alternativeText");
+        var originalText = anchorPillButton.getAttribute("data-originalText");
+        var originalTextColour = anchorPillButton.getAttribute("data-originalTextColour");
+        var pillButton = anchorPillButton.querySelector(".pillButton");
+        var audio = anchorPillButton.querySelector(".pillAudio");
+
+        //Reset everything if audio reaches end
+        if(audio.setOnEnd == null){
+            audio.setOnEnd = true;
+            audio.onended = function () {
+                BIB.streamAudio(anchorPillButton);
+            }
+        }
+
+        if (pillButton.innerText == originalText) { //Play pressed
+
+            pillButton.innerText = alternativeText;
+            pillButton.style.color = alternativeTextColour;
+            BIB.playStreamAudio(audio);
+
+        } else if (pillButton.innerText == alternativeText) { //Pause pressed
+
+            pillButton.innerText = originalText;
+            pillButton.style.color = originalTextColour;
+            BIB.pauseStreamAudio(audio);
+
+        }
+    },
+
+    playStreamAudio: function (el) {
+        el.play();
+    },
+
+    pauseStreamAudio: function (el) {
+        el.pause();
+    },
+
+    audioForwardRewind: function (el, time, type) {
+        if (type === "FORWARD") {
+            var bibAudio = document.getElementById("bibAudio");
+            var durationDifference = el.duration - el.currentTime;
+            var forwardTime = (parseInt(time / 1000) - durationDifference);
+            if(durationDifference < parseInt(time / 1000)){
+                Loader.show();
+                BIB.chapterDetailsCount++;
+                var illustrationText = document.getElementById("illustrationText");
+                bibAudio.src = BIB.chapterDetails[BIB.chapterDetailsCount].streamUrl+"?token="+BIB.mediaToken;
+                illustrationText.innerText = BIB.chapterDetails[BIB.chapterDetailsCount].title;
+                illustrationText.style.color = BIB.chapterDetails[BIB.chapterDetailsCount].titleColour;
+                bibAudio.currentTime += parseInt(forwardTime);
+                BIB.previousDurations += parseInt(forwardTime * 1000);
+                // wait a few seconds to load audio before attempting to play
+                setTimeout(function () {
+                    Loader.clear();
+                    BIB.audioPausePlay(bibAudio, BIB.pauseId, BIB.playId, BIB.wasPlaying);
+                }, 3000);
+
+            }else{
+                el.currentTime += parseInt(time / 1000);
+                BIB.previousDurations += (parseInt(time));
+                BIB.audioPausePlay(bibAudio, BIB.pauseId, BIB.playId, BIB.wasPlaying);
+            }
+        } else if (type === "REWIND") {
+            var bibAudio = document.getElementById("bibAudio");
+            var durationDifference = el.currentTime - (parseInt(time / 1000));
+            if(durationDifference < 0){
+                Loader.show();
+                BIB.chapterDetailsCount--;
+                var illustrationText = document.getElementById("illustrationText");
+                bibAudio.src = BIB.chapterDetails[BIB.chapterDetailsCount].streamUrl+"?token="+BIB.mediaToken;
+                illustrationText.innerText = BIB.chapterDetails[BIB.chapterDetailsCount].title;
+                illustrationText.style.color = BIB.chapterDetails[BIB.chapterDetailsCount].titleColour;
+                BIB.previousDurations -= parseInt(time);
+                // wait a few seconds to load audio before attempting to play
+
+                setTimeout(function () {
+                    bibAudio.currentTime = bibAudio.duration + (durationDifference);
+                    Loader.clear();
+                    BIB.audioPausePlay(bibAudio, BIB.pauseId, BIB.playId,BIB.wasPlaying);
+                }, 3000);
+
+            }else{
+                BIB.previousDurations -= parseInt(time);
+                el.currentTime -= parseInt(time / 1000);
+                BIB.audioPausePlay(bibAudio, BIB.pauseId, BIB.playId,BIB.wasPlaying);
+            }
+        }
+    },
+
+    audioPausePlay: function (el, pauseId, playId, isPlaying) {
+        var pausePlayImage = document.getElementById("pausePlayImage");
+        BIB.playId = playId;
+        BIB.pauseId = pauseId;
+        if (isPlaying === "pausePlay") {
+            if (!el.paused) {
+                pausePlayImage.src = playId;
+                el.pause();
+                BIB.wasPlaying = false;
+            } else {
+                pausePlayImage.src = pauseId;
+                el.play();
+                BIB.wasPlaying = true;
+            }
+        } else {
+            if (isPlaying) {
+                el.play();
+                BIB.wasPlaying = true;
+            } else if (!isPlaying) {
+                el.pause();
+                BIB.wasPlaying = false;
+            }
+        }
+        BIB.progressBarDetails("");
+    },
+    playSpeed: function () {
+        if (BIB.audioTimer != null) {
+            Timers.clearOne(BIB.audioTimer);
+        }
+        var bibAudio = document.getElementById("bibAudio");
+        var playSpeed = document.getElementById("playSpeed");
+        var playSpeedIcon = document.getElementById("playSpeedIcon");
+        var dataPlaySpeedIcon = playSpeed.getAttribute("data-play-speed-icon");
+        var dataPlaySpeedIntervals = playSpeed.getAttribute("data-play-speed-intervals");
+        var playSpeedIconArray = dataPlaySpeedIcon.split(',');
+        var playSpeedIntervalArray = dataPlaySpeedIntervals.split(',');
+        bibAudio.playbackRate = playSpeedIntervalArray[parseInt(BIB.playbackRate)];
+        playSpeedIcon.src = playSpeedIconArray[parseInt(BIB.playbackRate)];
+        BIB.playbackRate++;
+        if (playSpeedIntervalArray.length === BIB.playbackRate) {
+            BIB.playbackRate = 0;
+        }
+        BIB.progressBarDetails("");
+    },
+    audioSecondsToTime: function (duration) {
+        var measuredTime = new Date(null);
+        measuredTime.setSeconds(duration);
+        var MHSTime = measuredTime.toISOString().substr(11, 8);
+        return MHSTime;
+    },
+
+    progressBarDetails: function (resumeTime) {
+        var progressBarComplete = document.getElementById("progressBarComplete");
+        var bibAudio = document.getElementById("bibAudio");
+        var leftText = document.getElementById("leftText");
+        var progressBarDot = document.getElementById("progressBarDot");
+        var time = 1000 / parseInt(BIB.playbackRate);
+        var temp = 0;
+        var audioResumeTimeInput = document.getElementById("audioResumeTimeInput");
+        if (resumeTime === "") {
+            for (var c = 0; c < BIB.chapterDetailsCount; c++) {
+                temp = temp + parseInt(BIB.chapterDetails[c].duration);
+            }
+        }
+        if (!bibAudio.paused) {
+            if (BIB.audioTimer != null) {
+                Timers.clearOne(BIB.audioTimer);
+            }
+            BIB.audioTimer = setInterval(function () {
+                var currentTime = bibAudio.currentTime;
+                var currentTimeCeil = Math.ceil(currentTime);
+                var totalDuration = Math.ceil(bibAudio.duration);
+                var isDone = (totalDuration - currentTimeCeil);
+                var relativeTime = 0;
+                if (temp === 0) {
+                    if (isNaN(resumeTime)) {
+                        relativeTime = (parseInt(currentTime) * 1000) + parseInt(resumeTime);
+                    } else {
+                        relativeTime = ((parseInt(currentTime) * 1000));
+                    }
+                } else {
+                    relativeTime = ((parseInt(currentTime) * 1000) + parseInt(temp));
+                }
+                var progressWidth = (relativeTime / BIB.durationTotal) * 100;
+                leftText.innerHTML = BIB.audioSecondsToTime((relativeTime / 1000));
+                progressBarComplete.style.width = progressWidth + "%";
+                progressBarDot.style.left = (progressWidth - 3) + "%";
+                audioResumeTimeInput.value = relativeTime;
+                if (progressWidth >= 100 || isDone == 0) {
+                    Timers.clearOne(BIB.audioTimer);
+                    if(isDone == 0){
+                        if(BIB.chapterDetailsCount === (BIB.chapterDetails.length - 1)){
+                            var pausePlayImage = document.getElementById("pausePlayImage");
+                            var playIcon = bibAudio.getAttribute("data-playIcon");
+                            var nextIcon = document.getElementById("nextIcon");
+                            pausePlayImage.src = playIcon;
+                            nextIcon.style.display = "inline-block";
+                            BIB.audioLoader("0");
+                            return;
+                        }
+                        BIB.chapterNextPrevious("NEXT");
+                    }
+                    return;
+                }
+            }, time);
+
+            Timers.register(BIB.audioTimer);
+        }
+        if (bibAudio.paused) {
+            if (BIB.audioTimer != null) {
+                Timers.clearOne(BIB.audioTimer);
+            }
+            if (resumeTime === "") {
+                var currentTime = bibAudio.currentTime;
+                temp = temp + (currentTime * 1000);
+                BIB.progressBarPercentage = (temp / BIB.durationTotal);
+                leftText.innerText = BIB.audioSecondsToTime((temp / 1000));
+                audioResumeTimeInput.value = temp;
+            } else {
+                BIB.progressBarPercentage = (resumeTime / BIB.durationTotal);
+                leftText.innerText = BIB.audioSecondsToTime((resumeTime / 1000));
+                audioResumeTimeInput.value = resumeTime;
+            }
+            var progressWidth = BIB.progressBarPercentage * 100;
+            progressBarComplete.style.width = progressWidth + "%";
+            progressBarDot.style.left = (progressWidth - 3) + "%";
+        }
+
+    },
+    //Next Phase function
+    audioSleep: function (iconId, altIconId) {
+        var sleepIcon = document.getElementById("sleepIcon");
+        var sleep = document.getElementById("sleep");
+        var dataSleep = sleep.getAttribute("data-sleep");
+        if (dataSleep === "false") {
+            sleepIcon.src = altIconId;
+            sleep.setAttribute("data-sleep", "true");
+        } else if (dataSleep === "true") {
+            sleepIcon.src = iconId;
+            sleep.setAttribute("data-sleep", "false");
+        }
+    },
+
+    progressBarClick: function (e) {
+        var progressbarInner = document.getElementById("progressbarInner");
+        var progressBarComplete = document.getElementById("progressBarComplete");
+        var leftText = document.getElementById("leftText");
+        var bibAudio = document.getElementById("bibAudio");
+        var progressBarDot = document.getElementById("progressBarDot");
+        var illustrationText = document.getElementById("illustrationText");
+        var nextIcon = document.getElementById("nextIcon");
+        var progressbarInnerWidth = progressbarInner.offsetWidth;
+        var bounds = progressbarInner.getBoundingClientRect();
+        var x = e.clientX - bounds.left;
+        var progressWidth = ((x / progressbarInnerWidth) * 100);
+        var duration = BIB.durationTotal;
+        if(progressWidth >= 100){
+            progressWidth = 100;
+            var nextIcon = document.getElementById("nextIcon");
+            nextIcon.style.display = "inline-block";
+            BIB.isEnd = true;
+           // BIB.audioLoader("0");
+            return;
+        }
+        var timeInPercentage = ((duration / 100) * progressWidth);
+        var temp = timeInPercentage;
+        BIB.chapterDetailsCount = 0;
+        for (var c = 0; c < BIB.chapterDetails.length; c++) {
+            temp = temp - parseInt(BIB.chapterDetails[c].duration);
+            if (temp < 0) {
+                temp = temp + parseInt(BIB.chapterDetails[c].duration);
+                break
+            }
+            BIB.chapterDetailsCount++;
+        }
+        if (BIB.audioTimer != null) {
+            Timers.clearOne(BIB.audioTimer);
+        }
+        BIB.progressBarDurationStart = temp;
+        if (BIB.chapterDetailsCount === (BIB.chapterDetails.length - 1) || progressWidth === 100) {
+            nextIcon.style.display = "none";
+        } else if (BIB.chapterDetailsCount !== (BIB.chapterDetails.length - 1)) {
+            nextIcon.style.display = "inline-block";
+        }
+        if(x<=0){
+            timeInPercentage = 0;
+        }
+        if(BIB.chapterDetailsCount > (BIB.chapterDetails.length - 1)){
+            BIB.chapterDetailsCount--;
+        }
+        bibAudio.src = BIB.chapterDetails[BIB.chapterDetailsCount].streamUrl +"?token="+BIB.mediaToken;
+        illustrationText.innerText = BIB.chapterDetails[BIB.chapterDetailsCount].title;
+        illustrationText.style.color = BIB.chapterDetails[BIB.chapterDetailsCount].titleColour;
+        bibAudio.currentTime = (temp / 1000);
+        leftText.innerHTML = BIB.audioSecondsToTime(timeInPercentage / 1000);
+        progressBarComplete.style.width = progressWidth + "%";
+        progressBarDot.style.left = (progressWidth - 3) + "%";
+        BIB.progressBarDetails(timeInPercentage);
+    },
+    bindTouch: function (mediaToken) {
+        BIB.mediaToken = mediaToken;
+        var progressbarInner = document.getElementById("progressbarInner");
+        var onPointerDownFunc = function (e) {
+            BIB.progressBarClick(e);
+            window.addEventListener("pointermove", onPointermoveFunc);
+            window.addEventListener("pointerup", onPointerUpFunc);
+        };
+        var onPointermoveFunc = function (e) {
+            BIB.progressBarClick(e);
+        };
+        var onPointerUpFunc = function () {
+            window.removeEventListener("pointermove", onPointermoveFunc);
+            window.removeEventListener("pointerup", onPointerUpFunc);
+            if(BIB.wasPlaying){
+                var bibAudio = document.getElementById("bibAudio");
+                BIB.audioPausePlay(bibAudio, BIB.pauseId, BIB.playId, true);
+            }
+            if(BIB.isEnd){
+                BIB.isEnd = false;
+                var pausePlayImage = document.getElementById("pausePlayImage");
+                var playIcon = bibAudio.getAttribute("data-playIcon");
+                pausePlayImage.src = playIcon;
+                BIB.audioLoader("0");
+            }
+        };
+        progressbarInner.addEventListener("pointerdown", onPointerDownFunc);
+    },
+    audioStreamSwitcher: function (resumeTime, chapterDetails, count) {
+        BIB.progressBarPercentage = (resumeTime / BIB.durationTotal);
+        var chapterTimeDecider = resumeTime;
+        var beginAudioAt = 0;
+        for (var c = 0; c < BIB.chapterDetails.length; c++) {
+            var currentCount = chapterDetails[c].duration;
+            chapterTimeDecider = chapterTimeDecider - currentCount;
+            var bibAudio = document.getElementById("bibAudio");
+            bibAudio.setAttribute("data-count", BIB.chapterDetailsCount);
+            if (chapterTimeDecider > 0) {
+                BIB.previousDurations += parseInt(chapterDetails[c].duration);
+                beginAudioAt = (chapterTimeDecider / 1000);
+            } else {
+                BIB.previousDurations += (beginAudioAt * 1000);
+                var illustrationText = document.getElementById("illustrationText");
+                bibAudio.src = chapterDetails[c].streamUrl+"?token="+BIB.mediaToken;
+                bibAudio.currentTime = beginAudioAt;
+                illustrationText.innerText = chapterDetails[c].title;
+                illustrationText.style.color = chapterDetails[c].titleColour;
+                break;
+            }
+            BIB.chapterDetailsCount++;
+        }
+        BIB.progressBarDetails(resumeTime);
+    },
+    audioLoader: function (resumeTime) {
+        if (resumeTime == undefined) {
+            resumeTime = 0;
+        }
+        var bibAudio = document.getElementById("bibAudio");
+        var leftText = document.getElementById("leftText");
+        var rightText = document.getElementById("rightText");
+        var dataAudio = bibAudio.getAttribute("data-audio");
+        var count = bibAudio.getAttribute("data-count");
+        dataAudio = dataAudio.replace(/&quot;/g, '\"');
+        BIB.chapterDetails = JSON.parse(dataAudio);
+        BIB.chapterDetailsCount = parseInt(count);
+        BIB.durationTotal = 0;
+        var counter = Object.keys(BIB.chapterDetails).length;
+        for (var c = 0; c < counter; c++) {
+            BIB.durationTotal += Math.ceil(parseInt(BIB.chapterDetails[c].duration));
+        }
+        //Call Audio switcher to select correct audio
+        if (bibAudio.currentTime === 0) {
+            leftText.innerHTML = "00:00:00";
+        }
+        rightText.innerHTML = BIB.audioSecondsToTime((BIB.durationTotal / 1000));
+        BIB.audioStreamSwitcher(resumeTime, BIB.chapterDetails, BIB.chapterDetailsCount);
+    },
+    chapterNextPrevious: function (type) {
+        var bibAudio = document.getElementById("bibAudio");
+        var nextIcon = document.getElementById("nextIcon");
+        var isPlayingCheck = BIB.isPlaying();
+        BIB.previousDurations = 0;
+        var illustrationText = document.getElementById("illustrationText");
+        if (type === "NEXT") {
+            BIB.chapterDetailsCount++;
+        } else if (type === "PREVIOUS") {
+            if (BIB.chapterDetailsCount !== 0) {
+                BIB.chapterDetailsCount--;
+            }
+        }
+        if (BIB.chapterDetailsCount === (BIB.chapterDetails.length - 1)) {
+            nextIcon.style.display = "none";
+        } else if (BIB.chapterDetailsCount !== (BIB.chapterDetails.length - 1)) {
+            nextIcon.style.display = "inline-block";
+        }
+        bibAudio.src = BIB.chapterDetails[BIB.chapterDetailsCount].streamUrl+"?token="+BIB.mediaToken;
+        illustrationText.innerText = BIB.chapterDetails[BIB.chapterDetailsCount].title;
+        illustrationText.style.color = BIB.chapterDetails[BIB.chapterDetailsCount].titleColour;
+
+        if (BIB.chapterDetailsCount === 0) {
+            BIB.previousDurations = 0;
+        } else {
+            for (var c = 0; c < BIB.chapterDetailsCount; c++) {
+                BIB.previousDurations += parseInt(BIB.chapterDetails[c].duration);
+            }
+        }
+        BIB.audioPausePlay(bibAudio, BIB.pauseId, BIB.playId, isPlayingCheck);
+    },
+    isPlaying: function () {
+        var bibAudio = document.getElementById("bibAudio");
+        if (!bibAudio.paused) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    chapterSelect: function (orderNumber) {
+        if (orderNumber === undefined || orderNumber === "undefined") {
+            return;
+        }
+        var bibAudio = document.getElementById("bibAudio");
+        var illustrationText = document.getElementById("illustrationText");
+        var pausePlayImage = document.getElementById("pausePlayImage");
+        var pauseIcon = bibAudio.getAttribute("data-pauseIcon");
+        BIB.chapterDetailsCount = 0;
+        BIB.previousDurations = 0;
+        for (var c = 0; c < BIB.chapterDetails.length; c++) {
+            if (orderNumber == BIB.chapterDetails[c].order) {
+                bibAudio.src = BIB.chapterDetails[c].streamUrl+"?token="+BIB.mediaToken;
+                illustrationText.innerText = BIB.chapterDetails[c].title;
+                illustrationText.style.color = BIB.chapterDetails[c].titleColour;
+                bibAudio.currentTime = 0;
+                break
+            }
+            BIB.chapterDetailsCount++;
+        }
+        bibAudio.play();
+        pausePlayImage.src = pauseIcon;
+        BIB.progressBarDetails("");
+    },
+    //currently not used
+    bibAudio: function (mediaToken,url) {
+        try {
+            if (!'MediaSource' in window)
+                throw new ReferenceError('There is no MediaSource property in window object.');
+
+            var mime = 'audio/mpeg';
+
+            if (!MediaSource.isTypeSupported(mime)) {
+                console.log('Can not play the media. Media of MIME type ' + mime + ' is not supported.');
+                throw ('Media of type ' + mime + ' is not supported.');
+            }
+
+            var bibAudio = document.getElementById('bibAudio');
+            var mediaSource = new MediaSource();
+            bibAudio.src = URL.createObjectURL(mediaSource);
+            mediaSource.addEventListener('sourceopen', function () {
+                var sourceBuffer = this.addSourceBuffer(mime);
+                //sourceBuffer.appendWindowEnd = 4.0;
+                var xhr = new XMLHttpRequest;
+                xhr.open('GET', url);
+                xhr.setRequestHeader('mode', 'no-cors');
+                xhr.setRequestHeader('Authorization', mediaToken);
+                xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+                xhr.setRequestHeader('Access-Control-Allow-Methods', 'DELETE, POST, GET, OPTIONS');
+                xhr.setRequestHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+                xhr.responseType = 'arraybuffer';
+                xhr.onload = function () {
+                    try {
+                        switch (this.status) {
+                            case 200:
+                                sourceBuffer.appendBuffer(this.response);
+                                sourceBuffer.addEventListener('updateend', function () {
+                                    mediaSource.endOfStream();
+                                    console.log("Downloaded");
+                                });
+                                break;
+                            case 404:
+                                throw 'File Not Found';
+                            default:
+                                throw 'Failed to fetch the file';
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+                xhr.send();
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+};
+

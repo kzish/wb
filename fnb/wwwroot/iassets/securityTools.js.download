@@ -1,0 +1,86 @@
+var sessionKeyPair = "";
+
+var SecurityTools = {
+
+    regexValidator : function (json, value) {
+
+        var jsonObject = JSON.parse(json);
+
+        if(jsonObject === null){
+            return "SUCCESS";
+        }
+        else{
+            for (var i = 0; i < jsonObject.length; i++) {
+                var validator = jsonObject[i];
+
+                if (value.match(validator.regex)) {
+                    return validator.errorMessage;
+                }
+            }
+            return "SUCCESS";
+        }
+    },
+
+    createPublicPrivateKeyObject : function () {
+        var element = document.getElementById("PBKey");
+        var editedPemString = "";
+
+        if (sessionKeyPair == "") {
+            // generate an RSA key pair synchronously
+            var keypair = forge.pki.rsa.generateKeyPair({bits: 2048, e: 0x10001});
+
+            editedPemString = forge.pki.publicKeyToPem(keypair.publicKey).replace("-----BEGIN PUBLIC KEY-----", "");
+            editedPemString = (editedPemString.replace("-----END PUBLIC KEY-----", "")).trim();
+            element.value = editedPemString;
+
+            sessionStorage.setItem("trimmedkey", JSON.stringify(editedPemString));
+            sessionKeyPair = keypair;
+        } else {
+            element.value = JSON.parse(sessionStorage.getItem("trimmedkey"));
+        }
+    },
+
+    publicKeyEncryption : function (value, publicKeyJson) {
+
+        var publicKeyObject = JSON.parse(publicKeyJson);
+
+        // load public key from PEM-formatted string
+        var publicKey = forge.pki.publicKeyFromPem(publicKeyObject[0].attributes.value);
+
+        // convert string to UTF-8 encoded bytes
+        var buffer = forge.util.createBuffer(value, 'utf8');
+        var bytes = buffer.getBytes();
+
+        // encrypt data with a public key using RSAES PKCS#1 v1.5
+        var encrypted = publicKey.encrypt(bytes, 'RSAES-PKCS1-V1_5');
+
+        // base64-encode encrypted data to send to server
+        var b64Encoded = forge.util.encode64(encrypted);
+        return b64Encoded;
+    },
+
+    publicKeyInputEncryption : function (value, publicKeyJson) {
+
+        // load public key from PEM-formatted string
+        var publicKey = forge.pki.publicKeyFromPem(publicKeyJson);
+
+        // convert string to UTF-8 encoded bytes
+        var buffer = forge.util.createBuffer(value, 'utf8');
+        var bytes = buffer.getBytes();
+
+        // encrypt data with a public key using RSAES PKCS#1 v1.5
+        var encrypted = publicKey.encrypt(bytes, 'RSAES-PKCS1-V1_5');
+
+        // base64-encode encrypted data to send to server
+        var b64Encoded = forge.util.encode64(encrypted);
+        return b64Encoded;
+    },
+
+    privateKeyDecryption :function(encrypted) {
+        var element = document.getElementById("PBKey");
+        // decrypt data with a private key using RSAES PKCS#1 v1.5
+        var decrypted = sessionKeyPair.privateKey.decrypt(encrypted, 'RSAES-PKCS1-V1_5');
+        return decrypted;
+    }
+    
+};

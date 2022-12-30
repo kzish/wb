@@ -1,0 +1,431 @@
+var serviceWorkerController = {
+
+    successUI: null,
+    errorUI: null,
+    key: null,
+    parent: false,
+    ui: null,
+
+    //Firebase
+    firebase: null,
+    messaging: null,
+    userToken: null,
+
+    //Register service worker
+    serviceWorkerAndPushStart: function (successUI, errorUI, key, parent, ui) {
+        //Check if service worker is supported
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker
+                .register('/banking/static/all/pushnotificationwithack/firebase-messaging-sw.js', {scope: '/banking/'})
+                .then(function (registration) {
+                    console.log("Registered: " + registration);
+                    serviceWorkerController.setGlobalVariables(successUI, errorUI, key, parent, ui);
+                    serviceWorkerController.showMessageForeground();
+
+                    if (serviceWorkerController.messaging.registrationToUse == null) {
+                        serviceWorkerController.messaging.useServiceWorker(registration);
+                    }
+
+                    //Only go through setup notification process during "Allow notification" flow
+                    if (successUI != null && registration != null && key != null) {
+                        serviceWorkerController.askForNotificationPermission();
+                    }
+
+                })
+                .catch(function (error) {
+                    //Navigate to error screen else do nothing notification related
+                    console.log("Unable to register service worker: " + error);
+                    if (errorUI != null && errorUI != "") {
+                        serviceWorkerController.navigateToErrorScreen("Something went wrong");
+                    }
+                });
+        } else {
+            //Service worker not supported or not in secureContext
+            console.log("service worker not in navigator");
+            if (errorUI != null) {
+                serviceWorkerController.errorUI = errorUI;
+                serviceWorkerController.parent = parent;
+                serviceWorkerController.navigateToErrorScreen("Notifications not supported");
+            }
+        }
+    },
+
+    //Get Push permission
+    askForNotificationPermission: function () {
+        //Get push notification permission
+
+        var permission = Notification.permission;
+        console.log("User choice: " + permission);
+
+        //Once we know service workers and notifications are supported and user accepts we then initialise our variables and subscribe user
+        if (permission == "granted") {
+            console.log("Notifications accepted");
+            serviceWorkerController.setupPushSubscriptions();
+        } else if (permission == "default") {
+
+            Notification.requestPermission()
+                .then(function (permission) {
+
+                    if (permission == "granted") {
+                        console.log("Notifications accepted");
+                        serviceWorkerController.setupPushSubscriptions();
+                    } else if (permission == "default") {
+                        console.log("Notifications denied");
+                        serviceWorkerController.navigateToErrorScreen('Permission for Notifications was Denied');
+                    }
+
+                })
+                .catch(function (error) {
+                    console.log("Ask permission error: " + error);
+                    serviceWorkerController.navigateToErrorScreen("Something went wrong");
+                });
+
+        } else if (permission == "denied") {
+            console.log("Notifications denied");
+            serviceWorkerController.navigateToErrorScreen('Permission for Notifications was Denied');
+        }
+
+    },
+
+    setGlobalVariables: function (successUI, errorUI, key, parent, ui) {
+
+        if (successUI != null) {
+            serviceWorkerController.successUI = successUI;
+            serviceWorkerController.errorUI = errorUI;
+            serviceWorkerController.key = key;
+            serviceWorkerController.parent = parent;
+            serviceWorkerController.ui = ui;
+        }
+
+        if (serviceWorkerController.firebase == null) {
+            //Firebase Cloud Messaging(FCM) startup (push service)
+            //Connect to your mobi firebase project
+
+            if (typeof firebase !== 'undefined') {//Scripts imported successfully
+                var config = {
+                    apiKey: "AIzaSyB3jG8Am2XYqaNlIJkVPkRADAZqcOwMSzQ",
+                    authDomain: "mobi-project.firebaseapp.com",
+                    databaseURL: "https://mobi-project.firebaseio.com",
+                    projectId: "mobi-project",
+                    storageBucket: "",
+                    messagingSenderId: "779770461266"
+                };
+
+                if (firebase.apps.length == 0) {
+                    firebase.initializeApp(config);
+                }
+
+                serviceWorkerController.firebase = firebase;
+                serviceWorkerController.messaging = firebase.messaging();
+                serviceWorkerController.messaging.usePublicVapidKey('BN2y84OCF7ckPBqE0hahsAwM9AKB3d8QI-BEmcVFuU3MUK0tVr8kK5zfeVBz0nXqM7oQQDoBKbatA26M-mMBmik');
+            }
+
+        }
+
+        if (serviceWorkerController.messaging != null) {
+            var permission = serviceWorkerController.messaging.getNotificationPermission_();
+            if (ui != null && permission == "granted") {
+                serviceWorkerController.ui = ui;
+            }
+        }
+    },
+
+    //Save subscriptions for each user so we know who to send notifications to
+    setupPushSubscriptions: function (unsubscribedAttempted) {
+        //Once SW finished installing
+        navigator.serviceWorker.ready
+            .then(function (serviceWorker) {
+
+                serviceWorker.pushManager.getSubscription()
+                    .then(function (subscription) {
+
+                        Loader.show();
+
+                        if (subscription == null || unsubscribedAttempted == true) {
+                            /*
+                             backend receives and stores the push subscription (FCM returns unique data)
+                             backend sends a push notification to the subscription endpoint
+                             The push notification is then routed via the push service (FCM) to our Service Worker, who listens for the push-event.
+                            */
+
+                            serviceWorkerController.messaging.getToken().then(function (currentToken) {
+                                if (currentToken) {
+                                    serviceWorkerController.userToken = currentToken;
+                                    serviceWorkerController.navigateToSuccessScreen(currentToken);
+                                }
+                            }).catch(function (error) {
+                                console.error('Token retrieval failed', error);
+                                serviceWorkerController.navigateToErrorScreen("Something went wrong");
+                            });
+
+                        } else {
+                            //Unsubscribe subscribed user
+                            serviceWorkerController.unsubscribeUser(subscription);
+                        }
+
+                    }).catch(function (error) {
+                    console.error('Subscribe failed', error);
+                    serviceWorkerController.navigateToErrorScreen("Something went wrong");
+                });
+
+            });
+    },
+
+    unsubscribeUser: function (subscription) {
+        subscription.unsubscribe().then(function (successful) {
+            console.log('Unsubscribed');
+            serviceWorkerController.setupPushSubscriptions(true);
+        }).catch(function (error) {
+            console.log('Unable to unsubscribed', error);
+            serviceWorkerController.setupPushSubscriptions(true);
+        });
+    },
+
+    //Once subscribed go to success screen
+    navigateToSuccessScreen: function () {
+        var input = document.createElement("input");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("name", serviceWorkerController.key);
+        input.setAttribute("value", serviceWorkerController.userToken);
+        document.querySelector("form").firstElementChild.appendChild(input);
+        Form.submit("/banking/navigate?_u=" + serviceWorkerController.successUI + "&_p=" + serviceWorkerController.parent);
+    },
+
+    //On subscribe fail go to error screen
+    navigateToErrorScreen: function (errorMessage) {
+        var input = document.createElement("input");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("name", "error");
+        input.setAttribute("value", errorMessage);
+        document.querySelector("form").appendChild(input);
+        Form.submit("/banking/navigate?_u=" + serviceWorkerController.errorUI + "&_p=" + serviceWorkerController.parent);
+    },
+
+    pushEnabled: function () {
+
+        if (!document.cookie.match(/^(.*;)?FLAGS=[^;]+(.*)?$/)) {
+
+            // Samsung specific
+            if (navigator.userAgent.indexOf('SamsungBrowser') > -1) {
+                document.cookie = "FLAGS=" + "PushEnabled_false|" + "; path=/banking/";
+                console.log('FLAGS: Push - Disabled');
+                return;
+            }
+
+            if (!('serviceWorker' in navigator)) {
+                document.cookie = "FLAGS=" + "PushEnabled_false|" + "; path=/banking/";
+                console.log('FLAGS: Push - Disabled');
+                return;
+            }
+
+            if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
+                document.cookie = "FLAGS=" + "PushEnabled_false|" + "; path=/banking/";
+                console.log('FLAGS: Push - Disabled - Notifications not fully supported');
+                return;
+            }
+
+            document.cookie = "FLAGS=" + "PushEnabled_true|" + "; path=/banking/";
+            console.log('FLAGS: Push - Enabled');
+
+        }
+    },
+
+    //We use onMessage for foreground notifications(Page is focused)
+    showMessageForeground: function () {
+
+        if (serviceWorkerController.messaging.attachonMessageOnce == null || serviceWorkerController.messaging.attachonMessageOnce == "") {
+            //Only attach once
+            serviceWorkerController.messaging.attachonMessageOnce = "Done";
+
+            serviceWorkerController.messaging.onMessage(function (payload) {
+
+                console.log('Received foreground message');
+
+                //Use ackKey to get payload
+                var ackData = {
+                    data: {
+                        ackKey: payload.data.ackKey
+                    }
+                };
+
+                fetch(payload.data.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(ackData)
+                }).then(function (ackResponse) {
+                    console.log('Ack Success');
+
+                    if (!("Notification" in window)) {
+                        console.log("This browser does not support system notifications");
+                    } else if (Notification.permission === "granted") {
+
+                        ackResponse.json().then(function (response) {
+
+                            var multipleNotificationFromSameTag = false;
+                            var numChats = [];
+                            var numChatsCursor = 0;
+                            var numMessages = 0;
+                            var groupChat = response.data.customFields.groupcht;
+                            var senderUCN = response.data.customFields.senderUCN;
+                            var unreadCount = response.data.customFields.unreadcount;
+
+                            navigator.serviceWorker.getRegistration().then(function (registration) {
+                                //Group notification if there are multiple from same user/group
+                                registration.getNotifications().then(function (notifications) {//Gets all the currently visible notifications for your web app
+
+                                    for (var i = 0; i < notifications.length; i++) {
+
+                                        if ((notifications[i].data.senderUCN == senderUCN) && (notifications[i].data.groupChat == groupChat)) {
+                                            notifications[i].close();
+                                        }
+
+                                        numMessages += notifications[i].data.unreadCount * 1;
+
+                                        //Check how many notifications exists and update/remove/put notifications accordingly
+                                        //Keep track of unique chats
+                                        if (numChats.length <= 0) {
+                                            numChats[numChatsCursor] = notifications[i].data.senderUCN;
+                                            numChatsCursor++;
+                                        } else {
+                                            var found = false;
+
+                                            //Check if there's a notification from that chat already
+                                            for (var i2 = 0; i2 < numChats.length; i2++) {
+                                                if (numChats[i2].includes(notifications[i].data.senderUCN) && (notifications[i].data.groupChat == groupChat)) {
+                                                    found = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            if (found == false) {
+                                                numChats[numChatsCursor] = notifications[i].data.senderUCN;
+                                                numChatsCursor++;
+                                            }
+                                        }
+
+                                        //Check if new notification already has a chat being displayed
+                                        if(senderUCN == notifications[i].data.senderUCN){
+                                            multipleNotificationFromSameTag = true;
+                                        }
+                                    }
+
+                                    //Group or p2p
+                                    var icon = "";
+                                    var convertBase64ToImagePrefix = "data:image/png;base64,";
+                                    var title = response.data.customFields.senderDisplayName;
+
+                                    if (groupChat != null && groupChat == "Y") {
+                                        icon = convertBase64ToImagePrefix + response.data.customFields.conversationIconBase64;
+                                        title = response.data.customFields.groupname;
+
+                                        if(response.data.customFields.conversationIconBase64 == "" || response.data.customFields.conversationIconBase64 == null){
+                                            icon = "";
+                                        }
+                                    } else {
+                                        icon = convertBase64ToImagePrefix + response.data.customFields.senderIconBase64;
+
+                                        if(response.data.customFields.senderIconBase64 == "" || response.data.customFields.senderIconBase64 == null){
+                                            icon = "";
+                                        }
+                                    }
+
+                                    //Choose how to display new notification
+
+                                    if (numChats.length == 2 && (numChats[0] == numChats[1])) {//Same sender different chats
+                                        //Create notification
+                                        //If the same user sent something from a p2p and group chat we don't group
+
+                                        var notificationOptions = {
+                                            body: decodeURI(serviceWorkerController.removeTextMarkup(MM.markUpTextToHtml(response.data.customFields.messageText, false))),
+                                            icon: icon,
+                                            data: {
+                                                senderUCN: senderUCN,
+                                                unreadCount: unreadCount,
+                                                groupChat: groupChat
+                                            }
+                                        };
+
+                                        navigator.serviceWorker.getRegistration().then(function (registration) {
+                                            return registration.showNotification(title,
+                                                notificationOptions);
+                                        });
+
+                                    } else if (multipleNotificationFromSameTag == true) {//multiple messages from same chat
+                                        //Create notification
+                                        var notificationOptions = {
+                                            body: "You have " + unreadCount + " new messages from " + title + ".",
+                                            icon: icon,
+                                            data: {
+                                                senderUCN: senderUCN,
+                                                unreadCount: unreadCount,
+                                                groupChat: groupChat
+                                            }
+                                        };
+
+                                        navigator.serviceWorker.getRegistration().then(function (registration) {
+                                            return registration.showNotification(title,
+                                                notificationOptions);
+                                        });
+
+                                    } else {//Single message from single chat
+                                        //Create notification
+                                        var notificationOptions = {
+                                            body: decodeURI(serviceWorkerController.removeTextMarkup(MM.markUpTextToHtml(response.data.customFields.messageText, false))),
+                                            icon: icon,
+                                            data: {
+                                                senderUCN: senderUCN,
+                                                unreadCount: unreadCount,
+                                                groupChat: groupChat
+                                            }
+                                        };
+
+                                        navigator.serviceWorker.getRegistration().then(function (registration) {
+                                            return registration.showNotification(title,
+                                                notificationOptions);
+                                        });
+                                    }
+
+                                });
+
+                            });
+
+                        });
+
+                    }
+                }).catch(function (error) {
+                    console.log("Fetch ack error");
+
+                    var notificationOptions = {
+                        body: "Message Received"
+                    };
+
+                    navigator.serviceWorker.getRegistration().then(function (registration) {
+                        return registration.showNotification("User",
+                            notificationOptions);
+                    });
+                });
+            });
+        }
+
+    },
+
+    //Remove text markup Bold/Italics/Strikethrough/Monospace (web push API currently has no way to format notification text)
+    removeTextMarkup: function (text) {
+
+        text = text.replace(MM.convertStringToRegExp('<span class="textFormatShortcutChar">'), "");
+        text = text.replace(MM.convertStringToRegExp('<span style="font-family: monospace;">'), "");
+        text = text.replace(MM.convertStringToRegExp('</span>'), "");
+        text = text.replace(MM.convertStringToRegExp('<strike>'), "");
+        text = text.replace(MM.convertStringToRegExp('<b>'), "");
+        text = text.replace(MM.convertStringToRegExp('</b>'), "");
+        text = text.replace(MM.convertStringToRegExp('<i>'), "");
+        text = text.replace(MM.convertStringToRegExp('</i>'), "");
+        text = text.replace(MM.convertStringToRegExp('<s>'), "");
+        text = text.replace(MM.convertStringToRegExp('</s>'), "");
+
+        return text;
+    },
+
+};

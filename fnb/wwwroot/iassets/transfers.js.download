@@ -1,0 +1,159 @@
+var Transfers = {
+
+    _initialised: false,
+
+    _getTransferDataRow: function (dataRows, uniqueId) {
+        var length = dataRows.length;
+        for (var x = 0; x < length; x++) {
+            if (dataRows[x].uniqueIdField == uniqueId) {
+                return dataRows[x];
+            }
+        }
+        return false;
+    },
+
+    _setupControls: function () {
+
+        var leftSelectBox = document.getElementById("leftSelect");
+        var leftSelectedValue = leftSelectBox.options[leftSelectBox.selectedIndex].value;
+        var leftDataRow = this._getTransferDataRow(leftData.items, leftSelectedValue);
+
+        var rightSelectBox = document.getElementById("rightSelect");
+        var rightSelectedValue = rightSelectBox.options[rightSelectBox.selectedIndex].value;
+        var rightDataRow = this._getTransferDataRow(rightData.items, rightSelectedValue);
+
+        var controlContainers = document.getElementsByClassName("controlContainer");
+        var length = controlContainers.length;
+        for (var x = 0; x < length; x++) {
+            var controlContainer = controlContainers[x];
+            var controlContainerId = controlContainer.getAttribute("id");
+            var controlContainerKey = controlContainerId.replace("control_", "");
+
+            var leftControlSettings = leftDataRow.controls[controlContainerKey];
+            var rightControlSettings = rightDataRow.controls[controlContainerKey];
+
+            // Make only applicable controls visible
+            var visible = ((leftControlSettings.show == true) && (rightControlSettings.show == true));
+            if (visible) {
+                Util.removeClass(controlContainer, "hidden");
+            } else {
+                Util.addClass(controlContainer, "hidden");
+            }
+
+            // Set the default values
+            var inputElement = controlContainer.getElementsByTagName("input")[0];
+            if (typeof inputElement != 'undefined') {
+                if (typeof rightControlSettings.default != 'undefined') {
+                    inputElement.value = rightControlSettings.default;
+                    inputElement.setAttribute("value", inputElement.value);
+
+                } else if (typeof leftControlSettings.default != 'undefined') {
+                    inputElement.value = leftControlSettings.default;
+                    inputElement.setAttribute("value", inputElement.value);
+                }
+            }
+        }
+    },
+
+    _saveLastRightOption: function (rightSelect) {
+        if (rightSelect.options && rightSelect.options.length > 0) {
+            this._lastRightSelectedValue = rightSelect.options[rightSelect.selectedIndex].value;
+        }
+    },
+
+    _restoreLastRightOption: function (rightSelect) {
+        var options = rightSelect.options;
+        var length = options.length;
+        for (var x = 0; x < length; x++) {
+            if (options[x].getAttribute("selected") != null) {
+                rightSelect.selectedIndex = x;
+                return;
+            }
+        }
+        for (var x = 0; x < length; x++) {
+            if (options[x].value == this._lastRightSelectedValue) {
+                rightSelect.selectedIndex = x;
+                break;
+            }
+        }
+    },
+
+    _buildSelectOption: function (value, selected, topTextField, middleTextField, bottomTextField) {
+
+        return "<option style='background-color: var(--PAPER);color: var(--INK) ' value='" + value + "'"
+            + (selected ? " selected='selected'" : "")
+            + ">"
+            + topTextField
+            + (middleTextField.length > 0 ? " (" + middleTextField + ")" : "")
+            + (middleTextField.length == 0 && bottomTextField.length > 0 ? " (" + bottomTextField + ")" : "")
+            + "</option>\n";
+    },
+
+    initialiseDropdowns: function () {
+
+        this._initialised = false;
+
+        var length = leftData.items.length;
+        var leftOptions = "";
+        for (var x = 0; x < length; x++) {
+            var leftDataRow = leftData.items[x];
+            var selected = leftDataRow.uniqueIdField == leftData.selected;
+            leftOptions += this._buildSelectOption(leftDataRow.uniqueIdField, selected, leftDataRow.topTextField, leftDataRow.middleTextField, leftDataRow.bottomTextField);
+        }
+
+        document.getElementById("leftSelect").innerHTML = leftOptions;
+
+        this.selectTransferLeftOption();
+
+        // Clear initial selections
+        leftData.selected = "";
+        rightData.selected = "";
+
+        this._initialised = true;
+    },
+
+    selectTransferLeftOption: function (isInitial) {
+
+        var selectBox = document.getElementById("leftSelect");
+        var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+        var leftDataRow = this._getTransferDataRow(leftData.items, selectedValue);
+
+        var length = rightData.items.length;
+        var rightOptions = "";
+        for (var x = 0; x < length; x++) {
+            var rightDataRow = rightData.items[x];
+            var selected = rightDataRow.uniqueIdField == rightData.selected;
+            if ((leftDataRow.filterField == rightDataRow.filterField) && (leftDataRow.uniqueIdField != rightDataRow.uniqueIdField)) {
+                rightOptions += this._buildSelectOption(rightDataRow.uniqueIdField, selected, rightDataRow.topTextField, rightDataRow.middleTextField, rightDataRow.bottomTextField);
+            }
+        }
+        var rightSelect = document.getElementById("rightSelect");
+        this._saveLastRightOption(rightSelect);
+        rightSelect.innerHTML = rightOptions;
+        this._restoreLastRightOption(rightSelect);
+
+        //document.getElementById("leftTopLabel").innerHTML = leftDataRow.topTextField;
+        document.getElementById("leftMiddleLabel").innerHTML = leftDataRow.middleTextField;
+        document.getElementById("leftBottomLabel").innerHTML = leftDataRow.bottomTextField;
+        document.getElementById("leftImage").setAttribute("src", leftDataRow.icon);
+
+        this.selectTransferRightOption();
+    },
+
+    selectTransferRightOption: function () {
+
+        var selectBox = document.getElementById("rightSelect");
+        var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+        var rightDataRow = this._getTransferDataRow(rightData.items, selectedValue);
+        this._saveLastRightOption(selectBox);
+
+        //document.getElementById("rightTopLabel").innerHTML = rightDataRow.topTextField;
+        document.getElementById("rightMiddleLabel").innerHTML = rightDataRow.middleTextField;
+        document.getElementById("rightBottomLabel").innerHTML = rightDataRow.bottomTextField;
+        document.getElementById("rightImage").setAttribute("src", rightDataRow.icon);
+
+        this._setupControls();
+    }
+
+
+};

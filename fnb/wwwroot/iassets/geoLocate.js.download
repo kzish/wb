@@ -1,0 +1,30 @@
+var GeoLocate = {
+
+    options: {
+        enableHighAccuracy: true,
+        maximumAge: 15000,
+        timeout: 14000
+    },
+
+    _started: false,
+
+    _geoSuccess: function (position) {
+        var crd = position.coords;
+        document.cookie = "GEO=" + crd.latitude + "_" + crd.longitude + "_" + crd.altitude + "_" + crd.accuracy + "; path=/banking/";
+    },
+
+    start: function () {
+        if (!this._started) {
+            this._started = true;
+            this._watchId = navigator.geolocation.watchPosition(this._geoSuccess, null, this.geoOptions);
+        }
+    },
+
+    stop: function () {
+        if (this.started) {
+            navigator.geolocation.clearWatch(this._watchId);
+            this._started = false;
+        }
+    }
+
+}

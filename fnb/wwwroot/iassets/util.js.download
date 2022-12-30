@@ -1,0 +1,59 @@
+var Util = {
+
+    hasClass: function (element, cls) {
+        return element.classList.contains(cls);
+    },
+
+    addClass: function (element, cls) {
+        if (element != null && !this.hasClass(element, cls)) {
+            element.classList.add(cls);
+        }
+    },
+
+    removeClass: function (element, cls) {
+        element.classList.remove(cls);
+    },
+
+    toggleClass: function (element, cls) {
+        element.classList.toggle(cls);
+    },
+
+    preventDefault: function (e) {
+        //prevent event's default action
+        if (window.event) e = window.event;
+        if (e.preventDefault) {
+            e.preventDefault()
+        } else {
+            e.returnValue = false
+        }
+        ;
+    },
+
+    previousByClass: function (node, cls) {
+        while (node = node.previousSibling) {
+            if (node.nodeType == Node.ELEMENT_NODE && Util.hasClass(node, cls)) {
+                return node;
+            }
+        }
+        return null;
+    },
+
+    nextByClass: function (node, cls) {
+        while (node = node.nextSibling) {
+            if (node.nodeType == Node.ELEMENT_NODE && Util.hasClass(node, cls)) {
+                return node;
+            }
+        }
+        return null;
+    },
+
+    parentByClass: function (node, cls) {
+        while (node = node.parentNode) {
+            if (node.nodeType == Node.ELEMENT_NODE && Util.hasClass(node, cls)) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+};

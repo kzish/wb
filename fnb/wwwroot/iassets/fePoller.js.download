@@ -1,0 +1,104 @@
+var FEPoller = {
+
+    id: "",
+
+    options: {
+        interval: 3000,
+        flowUiid : ""
+    },
+
+    _pollSymbolResponseHandler: function () {
+        if (!MM._isUpdating) {
+            try {
+                var response = JSON.parse(this.responseText);
+
+                if (response.partialHelper != null) {
+
+                    if (FEPoller.id !== "") {
+                        Timers.clearOne(FEPoller.id);
+                        FEPoller.id = "";
+                    }
+
+                    setTimeout(function () {
+                        FEPoller._fePollData()
+                    }, 100);
+
+                } else if (FEPoller.id === "") {
+                    var timerId = setInterval(function () {
+                        FEPoller._fePollData()
+                    }, FEPoller.options.interval);
+                    Timers.register(timerId);
+                    FEPoller.id = timerId;
+                }
+
+                //Check if the update was intended for this screen
+
+                if (response.partialHelper.responseType = FEPoller.options.flowUiid) {
+
+                    var panel = null;
+                    if (response.partialHelper.panelId !== null) {
+                        var panels = document.querySelectorAll("[data-panel='panelId']");
+                        panels.forEach(function (panelItem) {
+                            if (panelItem.value == response.partialHelper.panelId) {
+                                panel = panelItem;
+                            }
+                        })
+                    }
+
+                    //Do Clear
+                    MM.partialUpdate_ClearHandler(panel, response.partialHelper.Clears);
+                    //Do Delete
+                    MM.partialUpdate_DeleteHandler(panel, response.partialHelper.deletes);
+                    //Do Add
+                    MM.partialUpdate_AddHandler(panel, response.partialHelper.adds);
+                    //Do Update
+                    MM.partialUpdate_UpdateHandler(panel, response.partialHelper.updates);
+
+                    //partial update for the title text
+                    if (response.partialHelper.titleTextUpdate != null) {
+                        var titleElement = document.querySelector(".headerTitle");
+                        if (titleElement != null) {
+                            titleElement.innerHTML = response.partialHelper.titleTextUpdate;
+                        }
+                    }
+
+                    //partial update for the subtitle text
+                    if (response.partialHelper.titleSubTextUpdate != null) {
+                        var subTitleElement = document.querySelector(".headerSubtitle");
+                        if (subTitleElement != null) {
+                            subTitleElement.innerHTML = response.partialHelper.titleSubTextUpdate.text;
+                            subTitleElement.setAttribute("data-ttl", response.partialHelper.titleSubTextUpdate.ttl);
+                        }
+                    }
+
+                    AttachEasyScroller(1000);
+                    Form._bindAnchorsForAjax();
+                    Quirks._setAbsolute(false);
+
+                    MM.init();
+                } else {
+                    console.log("Could not update...Flow does not match update");
+                }
+            } catch (Exception) {
+                console.log("No Updates...");
+            }
+        }
+    },
+
+    _fePollData: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/partialFrontEndAsync?flowUiid=" + FEPoller.options.flowUiid);
+        xhr.onload = FEPoller._pollSymbolResponseHandler.bind(xhr);
+        xhr.send();
+    },
+
+    start: function (flowUiid) {
+        var timerId = setInterval(function () {
+            FEPoller._fePollData()
+        }, FEPoller.options.interval);
+        FEPoller.options.flowUiid = flowUiid;
+        Timers.register(timerId);
+        FEPoller.id = timerId;
+    }
+
+}

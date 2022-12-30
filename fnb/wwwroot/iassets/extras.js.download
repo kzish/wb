@@ -1,0 +1,30 @@
+var Extras = {
+    _secondsSinceLastActivity :""
+    ,
+    inActivityTimer : function (idleTimeOut,redirectLocation,type) {
+        _secondsSinceLastActivity = 0;
+        var maxInactivity  = (idleTimeOut / 1000);// Milliseconds to Seconds
+        var activityEvents = ['mousedown', 'mousemove', 'keydown','scroll', 'touchstart', 'mouseover', 'click', 'contextmenu'];
+        var mobiTickerTimerId = setInterval(function () {
+            _secondsSinceLastActivity++;
+
+            if(_secondsSinceLastActivity == maxInactivity){
+                Extras.resetSecondsSinceLastActivity();
+                Timers.clearOne(mobiTickerTimerId);
+                if(type === "NAVIGATE") {
+                    Form.navigate(redirectLocation);
+                }else{
+                    //Partial update
+                }
+            }
+        }, 1000);
+        Timers.register(mobiTickerTimerId);
+
+        activityEvents.forEach(function(eventName) {
+            document.addEventListener(eventName, Extras.resetSecondsSinceLastActivity,true);
+        });
+    },
+    resetSecondsSinceLastActivity : function(){
+        _secondsSinceLastActivity = 0;
+    }
+};

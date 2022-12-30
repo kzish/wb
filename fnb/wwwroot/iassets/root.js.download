@@ -1,0 +1,359 @@
+var Root = {
+    _header: false,
+    _footer: false,
+    _unit: (document.documentElement.clientWidth / 75),
+    _maxUnit: 4.4,
+
+    unit: function () {
+
+        //for big screen
+        if(window.matchMedia("(min-width: 600px)").matches) {
+
+            if(document.getElementById("baseBodyPanelContainer") != null){
+                //Get exact width of drawing space (A single panel) and split into 75 units to match standard mobi
+                var panel = document.querySelector(".panelBody0");
+                var bounding = panel.getBoundingClientRect();
+                var width = bounding.right - bounding.left;
+
+                return Root._unit = (width / 75);
+            }else{
+                //Get exact width of drawing space (base-content) and split into 75 units to match standard mobi
+                var base = document.getElementById("base-content");
+                var bounding = base.getBoundingClientRect();
+                var width = bounding.right - bounding.left;
+
+                return Root._unit = (width / 75);
+            }
+
+        }
+
+        //Standard
+        return (document.documentElement.clientWidth / 75);
+    },
+
+    /*Universal form factor*/
+    setCssUnitVariable: function (){
+        if(window.matchMedia("(min-width: 600px)").matches) {
+
+            if(document.getElementById("baseBodyPanelContainer") != null){
+                //Get exact width of drawing space (A single panel) and split into 75 units to match standard mobi
+                var panel = document.querySelector(".panelBody0");
+                var bounding = panel.getBoundingClientRect();
+                var width = bounding.right - bounding.left;
+                document.documentElement.style.setProperty('--unit', width + "px/75");
+            }else{
+                //Get exact width of drawing space (base-content) and split into 75 units to match standard mobi
+                var base = document.getElementById("base-content");
+                var bounding = base.getBoundingClientRect();
+                var width = bounding.right - bounding.left;
+                document.documentElement.style.setProperty('--unit', width + "px/75");
+            }
+
+        }else{
+            document.documentElement.style.setProperty('--unit', "100vw/75");
+        }
+    },
+
+    screenResizeListener: function (){
+        window.addEventListener("resize", Root.recalculateUnits);
+    },
+
+    recalculateUnits: function (){
+        //Set css unit
+        Root.setCssUnitVariable();
+
+        //refresh unit based calculations
+        Root.onImagesLoadedWithCallback(Root.setBodyContentsHeight);
+        MM.structuredContainerHeaderFooterCalc();
+        MM.setBaseContentHeight();
+        MM.wrapPagerInParent();
+        MM.cardFill();
+        MM.donutGraph();
+        MM.mapSetHeight();
+        MM.calculateFrontEndConversationTimerAndNotificationHeight();
+        MM.FullScreenPanelContainer();
+        MM.setPagerHeightUFF();
+        MM.reDrawMMLineGraph();
+        MM.tabCollectionOuterContainer();
+        MM.popupHeaderFooterHide();
+        MM.ReSetupImageViewerCarousel();
+        MM.setCalenderMeetingsHeight();
+        MM.maintainIntrinsicSizeofImageWallet();
+        MM.setCollapsableContainer();
+        MM.setMaxHeightOnTransfersDataContainer();
+        Overview.calculateScreen();
+    },
+
+    applyMaxHeightForUFF: function (element, screenSize, height) {
+        if(window.matchMedia("(min-width: "+ screenSize +"px)").matches){
+            element.style.maxHeight = "calc(" + height  + " * var(--maxUnitBase))";
+        }
+    },
+
+    determineUnitNeeded: function () {
+        if(window.matchMedia("(min-width: 500px)").matches){
+            return "--maxUnitBase";
+        }else{
+            return "--unit";
+        }
+    },
+
+    determineVariableUnitNeeded: function () {
+        if(window.matchMedia("(min-width: 600px)").matches){
+            return Root._maxUnit;
+        }else{
+            return Root.unit();
+        }
+    },
+
+    determineDesktopMobile: function () {
+        //Check if mobile device by testing for touch and user agent string
+        if(('ontouchstart' in window || navigator.maxTouchPoints) == 1){
+            if(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/iPhone|iPad|iPod/i)
+                || navigator.userAgent.match(/Opera Mini/i) || navigator.userAgent.match(/IEMobile/i)){
+
+                return true;
+            }
+        }
+        return false;
+    },
+
+    applyIfUFF: function (screenSize) {
+        if(window.matchMedia("(min-width: " + screenSize + "px)").matches){
+            return true;
+        }else{
+            return false;
+        }
+    },
+    /*End Universal form factor*/
+
+    setHeader: function () {
+        Root._header = true;
+    },
+
+    hasHeader: function () {
+        return Root._header;
+    },
+
+    setFooter: function () {
+        Root._footer = true;
+    },
+
+    hasFooter: function () {
+        return Root._footer;
+    },
+
+    applyGlobalErrorLogServerSide: function (isClientLogging) {
+        if (console.log.prototype === undefined && console.info.prototype === undefined && console.warn.prototype === undefined && console.error.prototype === undefined) {
+            (function (isClientLogging) {
+                var _log = console.log;
+                var _error = console.error;
+                var _warning = console.warn;
+                var _info = console.info;
+
+                console.log = function overrideLog(logMessage) {
+                    if (isClientLogging) {
+                        _log.apply(console, arguments);
+                    }
+                    //var xhr = new XMLHttpRequest();
+                    //xhr.open("POST", "/banking/jsLog?log=" + arguments[0]);
+                    //xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    //xhr.send();
+                };
+
+                console.info = function (infoMessage) {
+                    if (isClientLogging) {
+                        _info.apply(console, arguments);
+                    }
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/banking/jsLog?info=" + arguments[0]);
+                    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    xhr.send();
+                };
+
+                console.warning = function (warnMessage) {
+                    if (isClientLogging) {
+                        _warning.apply(console, arguments);
+                    }
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/banking/jsLog?warning=" + arguments[0]);
+                    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    xhr.send();
+                };
+
+                console.error = function (errMessage) {
+                    if (isClientLogging) {
+                        _error.apply(console, arguments);
+                    }
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/banking/jsLog?error=" + arguments[0]);
+                    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    xhr.send();
+                };
+            })(isClientLogging);
+        }
+    },
+
+    initiateCopy: function () {
+        window.Clipboard = (function(window, document, navigator) {
+            var textArea,
+                copy;
+
+            function isOS() {
+                return navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false;
+            }
+
+            function createTextArea(text) {
+                textArea = document.createElement('textArea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+            }
+
+            function selectText() {
+                var range,
+                    selection;
+
+                if (isOS()) {
+                    range = document.createRange();
+                    range.selectNodeContents(textArea);
+                    selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    textArea.setSelectionRange(0, 999999);
+                } else {
+                    textArea.select();
+                }
+            }
+
+            function copyToClipboard() {
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
+
+            copy = function(text) {
+                createTextArea(text);
+                selectText();
+                copyToClipboard();
+            };
+
+            return {
+                copy: copy
+            };
+        })(window, document, navigator);
+    },
+
+    devToolsInit: function () {
+        if(document.getElementById("headerFixed") !== null){
+            document.getElementById("headerFixed").addEventListener('long-press', function (e) {
+                e.preventDefault();
+                document.getElementById("devTools").style.display = "block";
+            });
+        }
+    },
+
+    onlineRedirect: function(context,parms) {
+        var parm = parms.replace(/(&quot\;)/g,"\'").replace("]","").replace("[","");
+        if(context == "logoff"){
+            Root.onlineLogoff();
+        }else {
+            parent.postMessage('{"event": {"type":"redirect","context":"' + context + '", "params": "' + parm + '"}}', "*");
+        }
+    },
+
+    onlineLogoff: function(){
+        parent.postMessage('{"event": {"type":"logoff"}}', "*");
+    },
+
+    //this function was created for an IOS specific issue
+    // it is used to set the height value of the body element , to push the last element on screen to the bottom
+    setBodyContentsHeight: function () {
+        var lastElement = document.getElementById("lastElement");
+
+        if (lastElement != null) {
+            var bodyContents = document.getElementById("formContents");
+            bodyContents.style.height = "unset";
+
+            if (bodyContents != null) {
+
+                var base = document.getElementById("base-content");
+
+                var totalHeightNotRoot = Root.getTotalHeightAboveEl(base);
+                totalHeightNotRoot += lastElement.offsetHeight;
+
+                //check if root height + all other height <= window height (basically if you need to scroll on the screen)
+                //if true then set a height value to push last element all the way to bottom of screen(IOS FIX)
+                var bodyContentsBounding = bodyContents.getBoundingClientRect();
+                var bodyContentsHeight = bodyContentsBounding.bottom - bodyContentsBounding.top;
+
+                if ((bodyContentsHeight + totalHeightNotRoot) <= window.innerHeight) {
+                    bodyContents.style.height = "calc(" + window.innerHeight + "px - " + totalHeightNotRoot + "px)";
+                }
+            }
+        }
+    },
+
+    // function will return the sum of the padding/margin top/bottom of a certain element
+    getTotalHeightAboveEl: function (base) {
+        var totalHeight = 0;
+        var marginTopStr = window.getComputedStyle(base).marginTop;
+        var marginTop = marginTopStr != null && marginTopStr.length > 2 ? marginTopStr.substring(0, marginTopStr.length - 2) : 0;
+        totalHeight += parseFloat(marginTop);
+
+        var marginBottomStr = window.getComputedStyle(base).marginBottom;
+        var marginBottom = marginBottomStr != null && marginBottomStr.length > 2 ? marginBottomStr.substring(0, marginBottomStr.length - 2) : 0;
+        totalHeight += parseFloat(marginBottom);
+
+        var paddingTopStr = window.getComputedStyle(base).paddingTop;
+        var paddingTop = paddingTopStr != null && paddingTopStr.length > 2 ? paddingTopStr.substring(0, paddingTopStr.length - 2) : 0;
+        totalHeight += parseFloat(paddingTop);
+
+        var paddingBottomStr = window.getComputedStyle(base).paddingBottom;
+        var paddingBottom = paddingBottomStr != null && paddingBottomStr.length > 2 ? paddingBottomStr.substring(0, paddingBottomStr.length - 2) : 0;
+        totalHeight += parseFloat(paddingBottom);
+
+        return totalHeight;
+    },
+
+    onImagesLoadedWithCallback: function (callbackFunc) {
+        var container = document.getElementById("base-content");
+        if (container != null) {
+
+            var images = container.getElementsByTagName("img");
+            var loaded = images.length;
+            var completed = 0;
+
+            if (loaded > 0) {
+
+                for (var i = 0; i < images.length; i++) {
+                    if (images[i].complete) {
+                        loaded--;
+                        completed++;
+                    } else {
+                        images[i].addEventListener("load", function () {
+                            loaded--;
+                            if (loaded == 0) {
+                                //all images on screen loaded
+                                callbackFunc();
+                            }
+                        });
+
+                        images[i].addEventListener("error", function () {
+                            loaded--;
+                            if (loaded == 0) {
+                                callbackFunc();
+                            }
+                        });
+                    }
+                }
+
+                //All were already loaded
+                if(completed == images.length){
+                    callbackFunc();
+                }
+            } else {
+                callbackFunc();
+            }
+        }
+    },
+
+};

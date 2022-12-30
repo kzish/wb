@@ -1,0 +1,297 @@
+var TransfersHigh = {
+
+    _initialised: false,
+
+    _getTransferDataRow: function (dataRows, uniqueId) {
+        var length = dataRows.length;
+        for (var x = 0; x < length; x++) {
+            if (dataRows[x].uniqueIdField == uniqueId) {
+                return dataRows[x];
+            }
+        }
+        return false;
+    },
+
+    _setupControls: function () {
+
+        var leftDataRow = this._getTransferDataRow(leftData.items, leftData.selected);
+        var rightDataRow = this._getTransferDataRow(rightData.items, rightData.selected);
+
+        var controlContainers = document.getElementsByClassName("controlContainer");
+        var length = controlContainers.length;
+        for (var x = 0; x < length; x++) {
+            var controlContainer = controlContainers[x];
+            var controlContainerId = controlContainer.getAttribute("id");
+            var controlContainerKey = controlContainerId.replace("control_", "");
+
+            var leftControlSettings = leftDataRow.controls[controlContainerKey];
+            var rightControlSettings = rightDataRow != false ? rightDataRow.controls[controlContainerKey] : null;
+
+            // Make only applicable controls visible
+            var visible = ((leftControlSettings != null && leftControlSettings.show == true) && (rightControlSettings != null && rightControlSettings.show == true));
+            if (visible) {
+                Util.removeClass(controlContainer, "hidden");
+            } else {
+                Util.addClass(controlContainer, "hidden");
+            }
+
+            // Set the default values
+            var inputElement = controlContainer.getElementsByTagName("input")[0];
+            if (typeof inputElement != 'undefined') {
+                if (rightControlSettings != null && (typeof rightControlSettings.default != 'undefined')) {
+                    inputElement.value = rightControlSettings.default;
+                    inputElement.setAttribute("value", inputElement.value);
+
+                } else if (leftControlSettings != null && (typeof leftControlSettings.default != 'undefined')) {
+                    inputElement.value = leftControlSettings.default;
+                    inputElement.setAttribute("value", inputElement.value);
+                }
+            }
+        }
+    },
+
+    _buildReadoutForPopup: function (value, selected, topTextField, middleTextField, bottomTextField, icon, displayContent) {
+        var readout = "<div class='readout' data-key='" + value + "'";
+
+        if (displayContent == 'LEFT')
+            readout += "onclick=\"TransfersHigh.selectTransferLeftOptionFromPopup('" + value + "')\"";
+        else if (displayContent == 'RIGHT')
+            readout += "onclick=\"TransfersHigh.selectTransferRightOptionFromPopup('" + value + "')\"";
+
+        readout += ">";
+
+        readout += "<div class='cardArea'>";
+        if (icon != null && icon != "")
+            readout += "<img class='cardImg' src='" + icon + "'>";
+        readout += "</div>";
+
+        readout += "<div class='textArea'>";
+
+        if (topTextField != null && topTextField != "")
+            readout += "<div class='rightTopText' style='color:var(--INK)'>" + topTextField + "</div>";
+
+        if (middleTextField != null && middleTextField != "")
+            readout += "<div class='rightMiddleText' style='color:var(--INK)'>" + middleTextField + "</div>";
+
+        if (bottomTextField != null && bottomTextField != "")
+            readout += "<div class='rightBottomText' style='color:var(--INK)'>" + bottomTextField + "</div>";
+
+        readout += "</div>";
+
+        readout += "</div>";
+
+        return readout;
+    },
+
+    initialiseReadouts: function () {
+
+        this._initialised = false;
+
+        var length = leftData.items.length;
+        var readouts = "";
+        for (var x = 0; x < length; x++) {
+            var leftDataRow = leftData.items[x];
+            var selected = leftDataRow.uniqueIdField == leftData.selected;
+            readouts += this._buildReadoutForPopup(leftDataRow.uniqueIdField, selected, leftDataRow.topTextField, leftDataRow.middleTextField, leftDataRow.bottomTextField, leftDataRow.icon, "LEFT");
+        }
+
+        document.getElementById("leftDataContents").innerHTML = readouts;
+
+        //getting the first key from the left data to select
+        var firstLeftDataRow = leftData.items[0];
+        var keyToSelect = firstLeftDataRow.uniqueIdField;
+
+        // Clear initial selections
+        // leftData.selected = "";
+        // rightData.selected = "";
+
+        //on load of template clear value
+        if (!this._initialised)
+            this._lastRightSelectedValue = null;
+
+        this.selectTransferLeftOptionFromPopup(keyToSelect);
+
+        this._initialised = true;
+
+        //add transfersPopupISView to body
+        var popup = document.getElementById("transfersPopupISView");
+        if (popup != null) {
+            document.body.appendChild(popup);
+        }
+    },
+
+    selectTransferLeftOptionFromPopup: function (selectedValue) {
+
+        //store selected value
+        leftData.selected = selectedValue;
+        var leftDataRow = this._getTransferDataRow(leftData.items, selectedValue);
+
+        var length = rightData.items.length;
+        var readouts = "";
+        for (var x = 0; x < length; x++) {
+            var rightDataRow = rightData.items[x];
+            var selected = rightDataRow.uniqueIdField == rightData.selected;
+            if ((leftDataRow.filterField == rightDataRow.filterField) && (leftDataRow.uniqueIdField != rightDataRow.uniqueIdField)) {
+                readouts += this._buildReadoutForPopup(rightDataRow.uniqueIdField, selected, rightDataRow.topTextField, rightDataRow.middleTextField, rightDataRow.bottomTextField, rightDataRow.icon, "RIGHT");
+
+                //set lastRightSelectedValue if its not set already
+                if (this._lastRightSelectedValue == null) {
+                    var selectedValued = rightData.selected;
+                    if(selectedValued == null || selectedValued.substring(selectedValued.indexOf("-") + 1).length == 0) {
+                        selectedValued = rightDataRow.uniqueIdField;
+                    }
+                    // this._lastRightSelectedValue = rightDataRow.uniqueIdField;
+                    // rightData.selected = rightDataRow.uniqueIdField;
+                    this._lastRightSelectedValue = selectedValued;
+                    rightData.selected = selectedValued;
+                }
+            }
+        }
+
+        //set data for right popup
+        document.getElementById("rightDataContents").innerHTML = readouts;
+
+        //set data to left readout on screen
+        document.getElementById("leftTopLabel").innerHTML = leftDataRow.topTextField;
+        document.getElementById("leftMiddleLabel").innerHTML = leftDataRow.middleTextField;
+        document.getElementById("leftBottomLabel").innerHTML = leftDataRow.bottomTextField;
+        document.getElementById("leftImage").setAttribute("src", leftDataRow.icon);
+
+        document.getElementById("selectedLeftInput").setAttribute("value", selectedValue);
+
+        //on load of template select 'rightData.selected' for the right spinner
+        if (!this._initialised)
+            this.selectTransferRightOptionFromPopup(rightData.selected);
+        else
+            this.selectTransferRightOptionFromPopup();
+
+        this.closeTransfersPopup();
+    },
+
+    selectTransferRightOptionFromPopup: function (selectedValue) {
+
+        //left has been selected so update right accordingly
+        if (selectedValue == null) {
+            var readouts = document.getElementById("rightDataContents").children;
+            if (readouts != null) {
+                //checks if the lastRightSelectedValue is in the new filtered right data then keep it selected
+                var foundInNewFilterList = false;
+                for (var x = 0; x < readouts.length; x++) {
+                    if (readouts[x].getAttribute("data-key") == this._lastRightSelectedValue) {
+                        foundInNewFilterList = true;
+                        break;
+                    }
+                }
+
+                selectedValue = this._lastRightSelectedValue;
+
+                //if lastRightSelectedValue not fount in new filtered right data then select first value in list
+                if (!foundInNewFilterList) {
+                    if (readouts[0] != null) {
+                        selectedValue = readouts[0].getAttribute("data-key");
+                    }
+                }
+            }
+        }
+
+        var rightDataRow = this._getTransferDataRow(rightData.items, selectedValue);
+        var leftDataRow = this._getTransferDataRow(leftData.items, leftData.selected);
+
+        //check if same item is selected on left and right
+        if ((leftDataRow.uniqueIdField == rightDataRow.uniqueIdField)) {
+            rightDataRow = false;
+        }
+
+        if (rightDataRow == false) {
+            //filters the right data
+            for (var x = 0; x < rightData.items.length; x++) {
+                var currentRightDataRow = rightData.items[x];
+
+                if ((leftDataRow.filterField == currentRightDataRow.filterField) && (leftDataRow.uniqueIdField != currentRightDataRow.uniqueIdField)) {
+                    selectedValue = currentRightDataRow.uniqueIdField;
+                    rightDataRow = currentRightDataRow;
+                    break;
+                }
+            }
+        }
+
+        //checks if row exists before selecting and updating values
+        if (rightDataRow != false) {
+            //updates and stores selected values
+            rightData.selected = selectedValue;
+            this._lastRightSelectedValue = selectedValue;
+
+            document.getElementById("rightIconThreeReadout").parentElement.style.display = "";
+            document.getElementById("selectedRightInput").setAttribute("value", selectedValue);
+
+            document.getElementById("rightTopLabel").innerHTML = rightDataRow.topTextField;
+            document.getElementById("rightMiddleLabel").innerHTML = rightDataRow.middleTextField;
+            document.getElementById("rightBottomLabel").innerHTML = rightDataRow.bottomTextField;
+            document.getElementById("rightImage").setAttribute("src", rightDataRow.icon);
+        } else {
+            document.getElementById("rightIconThreeReadout").parentElement.style.display = "none";
+            rightData.selected = "";
+        }
+
+        this._setupControls();
+        this.closeTransfersPopup();
+
+    },
+
+    displayTransfersPopup: function (displayContent, instructionText) {
+        var popup = document.getElementById("transfersPopupISView");
+        if (popup != null) {
+            var popupInstructionText = popup.querySelector(".popupInstructionText");
+            popupInstructionText.innerHTML = instructionText;
+
+            popup.style.display = "grid";
+
+            var spinnerSymbolPopupBackdrop = popup.querySelector(".spinnerSymbolPopupBackdrop");
+            spinnerSymbolPopupBackdrop.style.animationName = "animation_openSpinnerSymbolBackdrop";
+
+            var popupWrapper = popup.querySelector(".popupWrapper");
+            popupWrapper.style.animationName = "animation_openSpinnerSymbolPopup";
+
+            if (displayContent == 'LEFT') {
+                var readoutLeft = document.getElementById("leftDataContents");
+                if (readoutLeft != null)
+                    readoutLeft.style.display = "grid";
+
+                var readoutRight = document.getElementById("rightDataContents");
+                if (readoutRight != null)
+                    readoutRight.style.display = "none";
+
+            } else if (displayContent == 'RIGHT') {
+                var readoutRight = document.getElementById("rightDataContents");
+                if (readoutRight != null)
+                    readoutRight.style.display = "grid";
+
+                var readoutLeft = document.getElementById("leftDataContents");
+                if (readoutLeft != null)
+                    readoutLeft.style.display = "none";
+            }
+        }
+    },
+
+    closeTransfersPopup: function () {
+        var popup = document.getElementById("transfersPopupISView");
+
+        var spinnerSymbolPopupBackdrop = popup.querySelector(".spinnerSymbolPopupBackdrop");
+        spinnerSymbolPopupBackdrop.style.animationName = "animation_closeSpinnerSymbolBackdrop";
+
+        var popupWrapper = popup.querySelector(".popupWrapper");
+        popupWrapper.style.animationName = "animation_closeSpinnerSymbolPopup";
+
+        var timerId = setInterval(function () {
+            Timers.clearOne(timerId);
+            popup.style.display = "none";
+
+        }, 300);
+        Timers.register(timerId);
+
+        //display footer when removing popup
+        var footer = document.getElementById('footer');
+        (footer != null) ? footer.classList.remove("hideFooter") : null;
+    },
+
+};

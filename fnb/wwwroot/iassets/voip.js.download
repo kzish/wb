@@ -1,0 +1,898 @@
+window.addEventListener('message', function(event) {
+    if (event.data == 'deregisterVoip') {
+        Voip.embeddedHangup();
+        RootPoller.options.pollOnline = false;
+    }
+}, false);
+
+var Voip = {
+    globalLocalStream : null,
+    globalRemoteStream : null,
+    server : "",
+    selectedApproach : "secret",
+    registered : false,
+    callId : null,
+    offerLessInvite : null,
+    globalJsep : null,
+    janus : null,
+    sipCall : null,
+    totalSeconds : 0,
+    started : null,
+    incomingOutgoing : "OUTGOING",
+    localAudio : null,
+    remoteAudio : null,
+    onCallEventFrequency : null,
+    calleeUcn : null,
+    sipGatewayArray : [],
+    voipOnCallEventTimer  : null,
+    voipTimer : null,
+    onCall : null,
+    callerUcn : null,
+    pointerMoveY : null,
+    eventsParent : null,
+    rtpType : null,
+    reconnect : null,
+    ip : null,
+    connectNumber : null,
+    password : null,
+    port : null,
+    eventFrequency : null,
+    parent : null,
+    transport : null,
+    authName : null,
+    sipGatewayJsonObj : null,
+    embeddedHangupFlag : null,
+    janusIsConnected : false,
+    janusConnectTimer :null,
+    janusConnectionCounter : null,
+    rejectWithMessageFlag : null,
+    init : function(){
+        Voip.bindTouch();
+        Voip.voipAddGobalStream();
+        Voip.voipRemoveGobalStream();
+    },
+    start : function(janusServer) {
+        var opaqueId = "sip-" +  Janus.randomString(12);
+        Janus.init({
+            debug: true,
+            callback: function() {
+                if (!Janus.isWebrtcSupported()) {
+                    console.log("This browser has no WebRTC support");
+                    return;
+                }
+                Voip.janus = new Janus({
+                    server: janusServer,
+                    success: function() {
+                        Voip.janusIsConnected = true;
+                        // Attach to echo test plugin
+                        Voip.janus.attach({
+                            plugin: "janus.plugin.sip",
+                            opaqueId: opaqueId,
+                            success: function(pluginHandle) {
+                                Voip.sipCall = pluginHandle;
+                                Voip.callId = Voip.sipCall.id;
+                                Voip.registerUsername();
+                            },
+                            error: function(error) {
+                                console.log("Janus error attaching plugin...", error);
+                            },
+                            consentDialog: function(on) {
+                                console.log("Janus consent dialog should be " + (on ? "on" : "off") + " now");
+                            },
+                            mediaState: function(medium, on) {
+                                console.log("Janus " + (on ? "started" : "stopped") + " receiving our " + medium);
+                            },
+                            webrtcState: function(on) {
+                                console.log("Janus says our WebRTC PeerConnection is " + (on ? "up" : "down") + " now");
+                            },
+                            onmessage: function(msg, jsep) {
+                                Voip.globalJsep = jsep;
+                                // Any error?
+                                var error = msg["error"];
+                                if( msg != null && msg["call_id"] != undefined){
+                                    Voip.callId = msg["call_id"];
+                                }
+                                if (error != null && error != undefined) {
+                                    console.log(error);
+                                    return;
+                                }
+                                var result = msg["result"];
+                                var code = result["code"];
+                                var reason  = result["reason"];
+                                if (result !== null && result !== undefined && result["event"] !== undefined && result["event"] !== null) {
+                                    var event = result["event"];
+                                    if (event === 'registration_failed') {
+                                        console.log("Registration failed: " + result["code"] + " " + result["reason"]);
+                                        Voip.voipEventRequest("VOIP.REGISTER.FAILED",Voip.callId,Voip.calleeUcn,result["code"],result["reason"], Voip.callerUcn, Voip.eventsParent);
+                                        return;
+                                    }
+                                    else if(event === 'unregistering'){
+                                        //If ever an action comes
+                                    }
+                                    else if(event === 'ringing'){
+                                        //If ever an action comes
+                                    }
+                                    else if(event === 'unregistered'){
+                                        console.log("Janus has successfully successfully unregistered user");
+                                        Voip.voipEventRequest("VOIP.REGISTER.DEREGISTERED",Voip.callId,Voip.calleeUcn,"400" ,"deregistered", Voip.callerUcn, Voip.eventsParent);
+                                        //Call another registration
+                                        Voip.janusSessionDestroy();
+                                        if(Voip.reconnect){
+                                            setTimeout(function() {
+                                                Voip.janusConnect(Voip.sipGatewayJsonObj, Voip.ip, Voip.connectNumber, Voip.password, Voip.port, Voip.eventFrequency , Voip.eventsParent, Voip.transport, Voip.authName);
+                                            }, 2000);
+                                        }
+                                    }
+                                    else if (event === 'registered') {
+                                        Voip.voipEventRequest("VOIP.REGISTER.REGISTERED",Voip.callId,Voip.calleeUcn,"200" ,"registered", Voip.callerUcn, Voip.eventsParent);
+                                        console.log("Janus has successfully registered user");
+                                        if (!Voip.registered) {
+                                            Voip.registered = true;
+                                        }
+                                    }
+                                    else if (event === 'registering') {
+
+                                    }
+                                    else if (event === 'missed_call') {
+
+                                    }
+                                    else if (event === 'info') {
+
+                                    }
+                                    else if (event === 'calling') {
+                                        Voip.voipEventRequest("VOIP."+Voip.incomingOutgoing+".CALL",Voip.callId, Voip.calleeUcn, "200" , "outgoing call", Voip.callerUcn, Voip.eventsParent);
+                                        var eventLabel = document.getElementById("eventLabel");
+                                        if(eventLabel != null) {
+                                            eventLabel.innerText = "Calling...";
+                                        }
+
+                                    } else if (event === 'incomingcall') {
+                                        Voip.incomingOutgoing = "INCOMING";
+                                        Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".CALL", Voip.callId, Voip.calleeUcn, result["username"], Voip.eventsParent);
+                                        navigator.permissions.query({name:'microphone'}).then(function(result) {
+                                            if (result.state == 'denied') {
+                                                setTimeout(function() {
+                                                    var answerRejectTemplate = document.getElementById("answerRejectTemplate");
+                                                    if(answerRejectTemplate){
+                                                        answerRejectTemplate.style.display = "none";
+                                                    }
+                                                    Voip.decline();
+                                                }, 2000);
+                                                return;
+                                            }
+                                        });
+                                        var doAudio = true;
+                                        Voip.offerLessInvite = false;
+                                        if (jsep !== null && jsep !== undefined) {
+                                            // What has been negotiated?
+                                            doAudio = (jsep.sdp.indexOf("m=audio ") > -1);
+                                            console.log("Audio " + (doAudio ? "has" : "has NOT") + " been negotiated");
+                                        } else {
+                                            //Janus call doesn't contain an offer... we'll need to provide one ourselves
+                                            Voip.offerLessInvite = true;
+                                        }
+                                        // Any security offered? A missing "srtp" attribute means plain RTP
+                                        var srtp = result["srtp"];
+                                        if (srtp === "sdes_optional") {
+                                            Voip.rtpType = "(SDES-SRTP offered)";
+                                        } else if (srtp === "sdes_mandatory") {
+                                            Voip.rtpType = "(SDES-SRTP mandatory)";
+                                        }
+                                        // Notify user
+                                        var extra = "";
+                                        if (Voip.offerLessInvite) {
+                                            extra = " (no SDP offer provided)"
+                                        }
+                                    } else if (event === 'accepting') {
+                                        console.log("User is accepting call");
+                                    } else if (event === 'progress') {
+                                        console.log("Janus call in progress");
+                                        // Call can start already: handle the remote answer
+                                        if (jsep !== null && jsep !== undefined) {
+                                            if(Voip.sipCall != null) {
+                                                Voip.sipCall.handleRemoteJsep({
+                                                    jsep: jsep,
+                                                    error: ""
+                                                });
+                                            }
+                                        }
+                                    } else if (event === 'accepted') {
+                                        var answerRejectTemplate = document.getElementById("answerRejectTemplate");
+                                        var callingTemplate = document.getElementById("callingTemplate");
+                                        if(answerRejectTemplate !== null) {
+                                            answerRejectTemplate.style.display = "none";
+                                        }
+                                        if(callingTemplate !=null) {
+                                            callingTemplate.style.display = "block";
+                                        }
+                                        Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".ANSWERED", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                                        if(Voip.onCallEventFrequency == null || Voip.onCallEventFrequency == ""){
+                                            Voip.onCallEventFrequency = 15000;
+                                        }
+                                        Voip.onCall = true;
+                                        //Send this first time around Then send after onCallEventFrequency.
+                                        Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".ONCALL", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                                        Voip.voipOnCallEventTimer = setInterval(Voip.onCallEvent,parseInt(Voip.onCallEventFrequency));
+                                        Timers.register(Voip.voipOnCallEventTimer);
+                                        // Call can start, now: handle the remote answer
+                                        if (jsep !== null && jsep !== undefined) {
+                                            if(Voip.sipCall != null) {
+                                                Voip.sipCall.handleRemoteJsep({
+                                                    jsep: jsep,
+                                                    error: ""
+                                                });
+                                            }
+                                        }
+                                        var eventLabel = document.getElementById("eventLabel");
+                                        var time = document.getElementById("time");
+                                        if(eventLabel !== null) {
+                                            eventLabel.style.display = "none";
+                                        }
+                                        if(time !== null) {
+                                            time.style.display = "block";
+                                        }
+                                        Voip.voipTimer = setInterval(Voip.setTime, 1000);
+                                        Timers.register(Voip.voipTimer);
+                                        Voip.voipStopRingtoneRingbacktone();
+                                    } else if (event === 'hangup') {
+                                        Voip.voipStopRingtoneRingbacktone();
+                                        if(Voip.sipCall != null){
+                                            if(Voip.rejectWithMessageFlag){
+                                                Voip.rejectWithMessageFlag = false;
+                                                Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".REJECTED.WITH.MESSAGE", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                                                return;
+                                            }
+                                            if(code == "200"){
+                                                if(reason == "to BYE"){
+                                                    Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".LOCAL.HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                                                    if(Voip.embeddedHangupFlag){
+                                                        Voip.deRegisterUsername(false,Voip.sipGatewayJsonObj);
+                                                        Voip.embeddedHangupFlag = false;
+                                                    }
+                                                }else if(reason == "Session Terminated") {
+                                                    Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".REMOTE.HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                                                }
+                                            }else if(code == "487"){
+                                                Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".REMOTE.HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                                            }else if(code == "603" || code == "486" || code == "480") {
+                                                var eventLabel = document.getElementById("eventLabel");
+                                                if (eventLabel != null) {
+                                                    if (code == "603" || reason === "Temporarily Unavailable") {
+                                                        eventLabel.innerText = "Call Declined";
+                                                    }
+                                                    else if(code == "480") {
+                                                        eventLabel.innerText = "Call Busy";
+                                                    }
+                                                }
+                                                Voip.voipEventRequestRejectEngaged("VOIP."+Voip.incomingOutgoing+".REJECTED", Voip.calleeUcn, Voip.callerUcn, Voip.callId , Voip.eventsParent);
+                                            }
+                                        }
+                                        if(Voip.voipOnCallEventTimer){
+                                            Voip.clearVoipTimers();
+                                        }
+                                    }
+                                }
+                            },
+                            onlocalstream: function(stream) {
+                            },
+                            onremotestream: function(stream) {
+                                Voip.globalRemoteStream = stream;
+                                Voip.remoteAudio = document.getElementById("remoteAudio");
+                                Janus.attachMediaStream(Voip.remoteAudio, Voip.globalRemoteStream);
+                            },
+                            slowLink: function(uplink, lost, mid) {
+                                console.log("Janus reports problems " + (uplink ? "sending" : "receiving") + " packets on mid " + mid + " (" + lost + " lost packets)");
+                            },
+                            oncleanup: function() {
+                                console.log("Janus got a cleanup notification");
+                            }
+                        });
+                    },
+                    error: function(error) {
+                        if(Voip.voipOnCallEventTimer){
+                            Voip.clearVoipTimers();
+                        }
+                        // check if the call was active
+                        if(Voip.callId !== null && Voip.calleeUcn !== null && Voip.onCall == true){
+                            //Lost connection to the server (is it down?)
+                            Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                            Voip.onCall = false;
+                        }
+                        // Failed janus boxes
+                    },
+                    destroyed: function() {
+
+                    }
+                });
+            }
+        });
+    },
+    janusConnect: function(sipGatewayJsonObj,  ip, connectNumber, password, port, eventFrequency , parent, transport, authName){
+        Voip.ip  = ip;
+        Voip.connectNumber = connectNumber;
+        Voip.password = password;
+        Voip.port = port;
+        Voip.eventFrequency = eventFrequency;
+        Voip.eventsParent = parent;
+        Voip.transport = transport;
+        Voip.authName = authName;
+        Voip.sipGatewayJsonObj = sipGatewayJsonObj;
+        Voip.websocketRestLoadBalancer(Voip.sipGatewayJsonObj);
+    },
+    registerUsername: function() {
+        var sip = "sip";
+        if(Voip.sipCall != null) {
+            var sipServer = "";
+            if(Voip.port === "0" || Voip.port !== "" ){
+                sipServer = sip + ":" + Voip.ip
+            }
+            else{
+                sipServer = sip + ":" + Voip.ip + ":" + Voip.port;
+            }
+            if (sipServer !== "" && sipServer.indexOf("sip:") !== 0 && sipServer.indexOf("sips:") !== 0) {
+                console.log("Please insert a valid SIP server (e.g., sip:192.168.0.1:5060)");
+                return;
+            }
+            var userName = sip + ":" + Voip.connectNumber + "@" + Voip.ip;
+            Voip.callerUcn = userName;
+            if (userName === "" || userName.indexOf("sip:") !== 0 || userName.indexOf("@") < 0) {
+                console.log('Please insert a valid SIP identity address (e.g., sip:goofy@example.com)');
+                return;
+            }
+            if (Voip.password === "") {
+                console.log("Insert the username secret (e.g., mypassword)");
+                return;
+            }
+            var register = {"request": "register", "username": userName};
+            // By default, the SIP plugin tries to extract the username part from the SIP
+            // identity to register; if the username is different, you can provide it here
+            if (Voip.authName !== "") {
+                register["authuser"] = Voip.authName;
+            }
+            if (Voip.selectedApproach === "secret") {
+                register["secret"] = Voip.password;
+            }
+            if (sipServer === "") {
+                console.log("sipServer is null");
+                Voip.sipCall.send({"message": register});
+            } else {
+                register["proxy"] = sipServer;
+                if(Voip.transport ==="udp" ||Voip.transport === "UDP"){
+                    register["force_udp"] = true;
+                }
+                else if(Voip.transport ==="tls" || Voip.transport === "TLS" ){
+                    register["force_tcp"] = true;
+                }
+                Voip.sipCall.send({"message": register});
+                Voip.sipGatewayJsonObj = "";
+            }
+        }
+    },
+    stop : function() {
+        Voip.janus.destroy();
+    },
+    call : function(number) {
+        if(Voip.janus == null){
+            return;
+        }
+        Voip.microphonePermission();
+        if(number.includes("sip:") && number.includes("@")){
+            Voip.calleeUcn = number;
+        }else{
+            Voip.calleeUcn = "sip:"+number+"@mobile-staging-app.fnb.co.za";
+        }
+        if(Voip.calleeUcn  === null || Voip.calleeUcn  === ""){
+            console.log('Please insert a valid SIP address (e.g., sip:pluto@example.com)');
+            return;
+        }
+        // Call this URI
+        Voip.doVideo = false;
+        if(Voip.sipCall != null) {
+            Voip.sipCall.createOffer({
+                media: {
+                    audioSend: true,
+                    audioRecv: true, // We DO want audio
+                    videoSend: Voip.doVideo,
+                    videoRecv: Voip.doVideo // We MAY want video
+                },
+                success: function (jsep) {
+                    var body = {
+                        request: "call",
+                        uri: Voip.calleeUcn
+                    };
+                    //Removing rtcp
+                    var arrayLines = jsep.sdp.split("\n");
+                    var removedRTCP = "";
+                    arrayLines.forEach(function selectStartTab(line) {
+                        if(line.includes("rtcp") || line.includes("RTCP")){
+                            //Leave line out
+                        }
+                        else{
+                            removedRTCP += line + "\n";
+                        }
+                    });
+                    jsep.sdp = Voip.removeCodec(removedRTCP, "opus");
+                    Voip.sipCall.send({"message": body, "jsep": jsep});
+                    Voip.incomingOutgoing = "OUTGOING";
+                },
+                error: function (error) {
+                    console.log("Call answer WebRTC error...", error);
+                    Voip.hangup();
+                }
+            });
+        }
+    },
+    decline : function() {
+        var body = {"request": "decline", "code": 480};
+        if(Voip.globalJsep != null){
+            Voip.sipCall.send({"message": body});
+        }
+        else{
+            Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".REMOTE.HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+        }
+    },
+    accept : function() {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+                if(Voip.globalJsep != null){
+                    var sipCallAction = (Voip.offerLessInvite ? Voip.sipCall.createOffer : Voip.sipCall.createAnswer);
+                    sipCallAction({
+                        jsep: Voip.globalJsep,
+                        media: { audio: true, video: false},
+                        success: function(jsep) {
+                            var body = {request: "accept"};
+                            if(Voip.sipCall != null) {
+                                Voip.sipCall.send({"message": body, "jsep": jsep});
+                            }
+                        },
+                        error: function(error) {
+                            var body = {"request": "decline", "code": 480};
+                            if(Voip.sipCall != null) {
+                                Voip.sipCall.send({"message": body});
+                            }
+                        }
+                    });
+                }else{
+                    Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".REMOTE.HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+                }
+            })
+            .catch(function(err) {
+                Voip.decline();
+            });
+    },
+    muteUnmute: function() {
+        var mute =  document.getElementById("mute");
+        var muteUnmuteButtonCaption =  document.getElementById("muteUnmuteButtonCaption");
+        var muteUnmuteIcon = document.getElementById("muteUnmuteIcon");
+        var muteInactiveIcon = "/banking/fstatic/images_flat/fnb/phone/mobi/voip.unmuted.icon.mdpi.png";
+        var muteActiveIcon = "/banking/fstatic/images_flat/fnb/phone/mobi/voip.muted.icon.mdpi.png";
+
+        if (mute.getAttribute("data-mute") === "true") {
+            muteUnmuteIcon.src = muteActiveIcon;
+            muteUnmuteButtonCaption.innerText ="Unmute";
+            if(Voip.sipCall != null) {
+                Voip.sipCall.muteAudio();
+            }
+            Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".MICROPHONE.DISABLED", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+            mute.setAttribute("data-mute", "false");
+        } else {
+            muteUnmuteIcon.src = muteInactiveIcon;
+            muteUnmuteButtonCaption.innerText ="Mute";
+            if(Voip.sipCall != null) {
+                Voip.sipCall.unmuteAudio();
+            }
+            Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".MICROPHONE.ENABLED", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+            mute.setAttribute("data-mute", "true");
+        }
+    },
+    holdUnholdCall : function(){
+        var holdUnholdCall =  document.getElementById("holdUnholdCall");
+        var holdIcon = "";
+        var unholdIcon = "";
+        var dataholdUnhold = holdUnholdCall.getAttribute("data-holdUnhold");
+        var holdUnholdMessage = "";
+        if(dataholdUnhold === "true"){
+            holdUnholdCall.setAttribute("data-holdUnhold", "false");
+            holdUnholdMessage= {"request": "hold"};
+            holdUnholdCall.style.backgroundImage = unholdIcon;
+            Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".HOLD", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+        }else if(dataholdUnhold === "false"){
+            holdUnholdCall.setAttribute("data-holdUnhold", "true");
+            holdUnholdMessage= {"request": "unhold"};
+            holdUnholdCall.style.backgroundImage = holdIcon;
+            Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".UNHOLD", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+        }
+        if(Voip.sipCall != null) {
+            Voip.sipCall.send({"message": holdUnholdMessage});
+        }
+    },
+    hangup : function() {
+        var hangup = {"request": "hangup"};
+        if(Voip.sipCall != null) {
+            if(Voip.sipCall.webrtcStuff.myStream == null || Voip.sipCall.webrtcStuff.remoteStream == null){
+                Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".LOCAL.HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+            }else{
+                Voip.sipCall.send({"message": hangup});
+            }
+        }
+        else{
+            setTimeout(function() {
+                Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".LOCAL.HUNGUP", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+            }, 2000);
+        }
+
+        var ringbacktone = document.getElementById("ringbacktone");
+        if(ringbacktone != null && !ringbacktone.paused){
+            ringbacktone.pause();
+        }
+        //This section is messaging voip.
+        var callerImageContainer = document.getElementsByClassName("callerImageContainer");
+        if(callerImageContainer != null){
+            var mute = document.getElementById("mute");
+            var time = document.getElementById("time");
+            var eventLabel = document.getElementById("eventLabel");
+            var calleeName = document.getElementById("calleeName");
+            var hangup = document.getElementById("hangup");
+            if(hangup  != null ){
+                hangup.style.display = "none";
+                calleeName.style.display = "none";
+                time.style.display = "none";
+                mute.style.display = "none";
+                eventLabel.style.display = "block";
+                eventLabel.innerHTML= "Call Ended.";
+            }
+        }
+        if(Voip.voipOnCallEventTimer){
+            Voip.clearVoipTimers();
+        }
+    },
+    setTime : function() {
+        ++Voip.totalSeconds;
+        var minutes = document.getElementById("minutes");
+        var seconds = document.getElementById("seconds");
+        if(minutes !== null){
+            minutes.innerHTML = Voip.pad(parseInt(Voip.totalSeconds/60));
+        }
+        if(seconds !== null){
+            seconds.innerHTML  = Voip.pad(Voip.totalSeconds%60);
+        }
+    },
+    pad: function(val) {
+        var valString = val + "";
+        if(valString.length < 2) {
+            return "0" + valString;
+        } else {
+            return valString;
+        }
+    },
+    voipEventRequestRejectEngaged: function(eventType, callee, caller, callData, eventsParent){
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/banking/voipEvents?requestType=" + eventType  + "&callee="+callee + "&caller="+caller + "&callData=" + callData + "&eventsParent=" + eventsParent);
+        xhr.send();
+    },
+    voipEventRequestCallDataCallee: function(eventType, callData, callee, caller, eventsParent){
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/banking/voipEvents?requestType=" + eventType + "&callData=" + callData + "&callee=" + callee  + "&caller="+caller + "&eventsParent=" + eventsParent );
+        xhr.send();
+    },
+    voipEventRequest: function(eventType, callData, callee, codeMsg , reasonMsg, caller, eventsParent){
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/banking/voipEvents?requestType=" + eventType + "&callData=" + callData + "&callee=" + callee + "&codeMsg=" + codeMsg + "&reasonMsg="+reasonMsg  + "&caller="+caller + "&eventsParent=" + eventsParent);
+        xhr.send();
+    },
+    voipMicrophonePermission: function(eventType ,micPermission){
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/banking/voipEvents?requestType=" + eventType  + "&micPermission=" + micPermission);
+        xhr.send();
+    },
+    bindTouch : function(){
+
+        var callLogo = document.getElementById("callLogo");
+        var incomingCallIcon = document.getElementById("callLogoContainer");
+
+        if(incomingCallIcon === null){
+            return;
+        }
+
+        var  onPointerDownFunc =  function (e) {
+            Voip.pointerMoveY = e.clientY;
+            callLogo.style.animationName = "";
+            callLogo.style.animationDuration = "";
+            callLogo.style.animationIterationCount= "";
+
+            incomingCallIcon.addEventListener("pointermove",onPointermoveFunc);
+            window.addEventListener("pointerup",onPointerUpFunc);
+
+        };
+
+        var onPointermoveFunc = function (e) {
+            var y = e.clientY;
+            var swipeSensitivity = 10;
+
+            if(y < (Voip.pointerMoveY- swipeSensitivity)){
+                Voip.voipStopRingtoneRingbacktone();
+                callLogo.style.transform = "translateY(-"+y+"px)";
+                callLogo.style.transition = '1.5s';
+                Voip.accept();
+                incomingCallIcon.removeEventListener("pointermove", onPointermoveFunc);
+                callLogo.style.animation = 'fadeOut ease 1.5s';
+                callLogo.style.opacity = '0';
+                return;
+            }
+        };
+        var onPointerUpFunc =  function () {
+            callLogo.style.animationName = "swipeLeftRightIndicator";
+            callLogo.style.animationDuration = "1.5s";
+            callLogo.style.animationIterationCount= "infinite";
+            incomingCallIcon.removeEventListener("pointermove",onPointermoveFunc);
+            window.removeEventListener("pointerup",onPointerUpFunc);
+        };
+
+        incomingCallIcon.addEventListener("pointerdown",onPointerDownFunc);
+    },
+    onCallEvent : function () {
+        Voip.voipEventRequestCallDataCallee("VOIP."+Voip.incomingOutgoing+".ONCALL", Voip.callId, Voip.calleeUcn, Voip.callerUcn, Voip.eventsParent);
+    },
+    websocketRestLoadBalancer: function(sipGatewayJsonObj) {
+        var websockets = [];
+        var httpsRest = [];
+        var timeout = []
+        var cleanedSipGatewayJsonObj = Voip.voipJavaCleaner(sipGatewayJsonObj);
+        cleanedSipGatewayJsonObj.forEach(function(sipGateway) {
+            if(sipGateway.sip.includes("wss")){
+                websockets.push(sipGateway.sip)
+            }else{
+                httpsRest.push(sipGateway.sip)
+            }
+            timeout.push(sipGateway.timeout);
+        });
+        for (var i = 0; i < websockets.length; i++) {
+            for (var e = 0; e < Math.floor(websockets.length / websockets.length); e++) {
+                var sl1 = Math.floor(Math.random() * (websockets.length - 0));
+                var sl2 = Math.floor(Math.random() * (websockets.length - 0));
+                var tempArray = websockets[sl1];
+                websockets[sl1] = websockets[sl2];
+                websockets[sl2] = tempArray;
+            }
+        }
+        for (var i = 0; i < httpsRest.length; i++) {
+            for (var e = 0; e < Math.floor(httpsRest.length / httpsRest.length); e++) {
+                var sl1 = Math.floor(Math.random() * (httpsRest.length - 0));
+                var sl2 = Math.floor(Math.random() * (httpsRest.length - 0));
+                var tempSock = httpsRest[sl1];
+                httpsRest[sl1] = httpsRest[sl2];
+                httpsRest[sl2] = tempSock;
+            }
+        }
+        if(Voip.sipGatewayArray === null || Voip.sipGatewayArray === ""){
+            console.log("Now sip gateways specified");
+            return;
+        }
+        Voip.sipGatewayArray =  websockets.concat(httpsRest);
+        Voip.janusConnectionCounter = 0;
+        var seconds = timeout[0];
+        if(seconds === null || seconds === ""){
+            seconds = 3000;
+        }else{
+            seconds = parseInt(timeout[0]);
+        }
+        Voip.janusConnectTimer = setInterval(Voip.janusConnectionTimer,seconds);
+        Timers.register(Voip.janusConnectTimer);
+    },
+    showAnswerRejectScreen : function (callee, caller) {
+        Voip.calleeUcn = callee;
+        Voip.callerUcn = caller;
+        var answerRejectTemplate = document.getElementById("answerRejectTemplate");
+        var callingTemplate = document.getElementById("callingTemplate");
+        answerRejectTemplate.style.display = "block";
+        callingTemplate.style.display = "none";
+    },
+    microphonePermission : function(){
+        //Navigator api only works on secure website.
+        //undefined check is for locale.
+        //INT, PP and Live
+        var voipMicrophonePermission = document.getElementById("voipMicrophonePermission");
+        var success = null, failure= null;
+        if(voipMicrophonePermission ){
+            success  = voipMicrophonePermission.getAttribute("data-successUiid");
+            failure = voipMicrophonePermission.getAttribute("data-failUiid");
+        }
+        if(navigator.mediaDevices == undefined){
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function() {
+                Voip.voipMicrophonePermission("MICROPHONEPERMISSION", "True");
+                if(success != null){
+                    Form.navigate(success);
+                }
+            })
+            .catch(function() {
+                Voip.voipMicrophonePermission("MICROPHONEPERMISSION", "False");
+                if(failure != null) {
+                    Form.navigate(failure);
+                }
+            });
+    },
+    deRegisterUsername : function(reconnect,sipGatewayJsonObj){
+        //Called on deleteConnect to deregister all users on Janus and portasip.
+        Voip.sipGatewayJsonObj = sipGatewayJsonObj ;
+        Voip.reconnect = reconnect;
+        if(Voip.sipCall != null){
+            var deRegister = {"request": "unregister"};
+            Voip.sipCall.send({"message": deRegister});
+        }
+    },
+    voipAddGobalStream : function () {
+        // Add's audio element to body of current page for local and remote stream
+        var callerImageContainer = document.getElementsByClassName("callerImageContainer");
+        if(Voip.globalRemoteStream !=null && Voip.globalRemoteStream.active == true){
+            Voip.remoteAudio = document.getElementById("remoteAudio");
+            Janus.attachMediaStream(Voip.remoteAudio, Voip.globalRemoteStream);
+            Voip.remoteAudio.play();
+            if(callerImageContainer!=null) {
+                var eventLabel = document.getElementById("eventLabel");
+                var time = document.getElementById("time");
+                if(eventLabel != null){
+                    eventLabel.style.display = "none";
+                }
+                if(time != null){
+                    time.style.display = "inline-block";
+                }
+                Voip.voipTimer = setInterval(Voip.setTime, 1000);
+                Timers.register(Voip.voipTimer);
+            }
+        }
+    },
+    voipRemoveGobalStream : function(){
+        //Remove's audio element to body of current page for local and remote stream
+        if(Voip.globalRemoteStream !=null && Voip.globalRemoteStream.active == false){
+            Voip.globalRemoteStream = null;
+        }
+    }, clearVoipTimers : function () {
+        //Clears all timers IE, call timer on display and Oncall timer that happens every given interval from BE.
+        //Function created as it is used in multiple sections of VOIP, implementation
+        if(Voip.voipOnCallEventTimer){
+            Timers.clearOne(Voip.voipOnCallEventTimer);
+            Timers.clearOne(Voip.voipTimer);
+            Voip.totalSeconds = 0;
+        }
+    },
+    voipUsers : function (calleeUcn, callerUcn) {
+        //Gets the caller and callee. to use if the sdp comes with null values
+        Voip.calleeUcn = calleeUcn;
+        Voip.callerUcn = callerUcn;
+    },
+    voipVibrateStart: function () {
+        var pattern = [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000];
+        if (navigator.vibrate) {
+            navigator.vibrate(pattern);
+        }
+    },
+    voipVibrateStop: function () {
+        if (navigator.vibrate) {
+            navigator.vibrate(0);
+        }
+    },
+    voipPlayRingtoneRingbacktone : function (type) {
+        var ringbacktone = document.getElementById("ringbacktone");
+        var ringtone = document.getElementById("ringtone");
+        if(type === "ringtone"){
+            ringtone.autoplay = true;
+            Voip.voipVibrateStart();
+        }else if(type === "ringbacktone"){
+            ringbacktone.autoplay = true;
+        }
+    },
+    voipStopRingtoneRingbacktone : function () {
+        var ringbacktone = document.getElementById("ringbacktone");
+        var ringtone = document.getElementById("ringtone");
+        if(!ringbacktone.paused){
+            ringbacktone.pause();
+        }else if(!ringtone.paused){
+            ringtone.pause();
+            Voip.voipVibrateStop()
+        }
+    },
+    voipKeypad : function (dtmfNumber) {
+        Voip.sipCall.dtmf({
+            dtmf: {
+                tones: dtmfNumber
+            }
+        });
+    },
+    voipJavaCleaner : function (sipGatewayJsonObj){
+        if(sipGatewayJsonObj != null && sipGatewayJsonObj != "") {
+            sipGatewayJsonObj = sipGatewayJsonObj.replace(/&quot;/g, '\"');
+            return JSON.parse(sipGatewayJsonObj);
+        }
+    },
+    embeddedHangup :function () {
+        if(Voip.sipCall !== null){
+            if( Voip.globalRemoteStream !== null){
+                var hangup = {"request": "hangup"};
+                Voip.sipCall.send({"message": hangup});
+            }else{
+                Voip.janusSessionDestroy();
+            }
+            Voip.embeddedHangupFlag = true;
+        }
+    },
+    janusSessionDestroy: function () {
+        for(var s in Janus.sessions) {
+            if(Janus.sessions[s] && Janus.sessions[s].destroyOnUnload) {
+                Voip.voipEventRequest("VOIP.REGISTER.DEREGISTERED",Voip.callId,Voip.calleeUcn,"400" ,"deregistered", Voip.callerUcn, Voip.eventsParent);
+                Janus.log("Destroying session from voip.js : " + s);
+                Janus.sessions[s].destroy({unload: true, notifyDestroyed: false});
+            }
+        }
+        Voip.janusIsConnected = false;
+    },
+    janusConnectionTimer : function () {
+        if(Voip.janusConnectionCounter > Voip.sipGatewayArray.length || Voip.janusIsConnected){
+            Voip.janusConnectionCounter = 0;
+            Timers.clearOne(Voip.janusConnectTimer);
+            return;
+        }
+        else if(!Voip.janusIsConnected){
+            Voip.start(Voip.sipGatewayArray[Voip.janusConnectionCounter]);
+        }
+        Voip.janusConnectionCounter++;
+    },
+    voipRejectWithMessage : function () {
+        //Function is used in ActionableHelperTag.java
+        var hangup = {"request": "hangup"};
+        if(Voip.sipCall != null) {
+            Voip.sipCall.send({"message": hangup});
+            Voip.rejectWithMessageFlag = true;
+        }
+        //To allow action helper in options control to navigate and execute voipReject with message
+        return true;
+    }
+    ,removeCodec : function(orgsdp, codec) {
+        var internalFunc = function(sdp) {
+            var codecre = new RegExp('(a=rtpmap:(\\d*) ' + codec + '\/90000\\r\\n)');
+            var rtpmaps = sdp.match(codecre);
+            if (rtpmaps == null || rtpmaps.length <= 2) {
+                return sdp;
+            }
+            var rtpmap = rtpmaps[2];
+            // var modsdp = sdp.replace(codecre, "");​
+            var modsdp = sdp.replace(codecre, "");
+            var rtcpre = new RegExp('a=rtcp-fb: '+rtpmap+'.*\r\n', 'g');
+            //  modsdp = modsdp.replace(rtcpre, "");​
+            modsdp = modsdp.replace(rtcpre, "");
+            var fmtpre = new RegExp('(a=fmtp:' + rtpmap + '.*\r\n)', 'g');
+            //    modsdp = modsdp.replace(fmtpre, "");​
+            modsdp = modsdp.replace(fmtpre, "");
+            var aptpre = new RegExp('(a=fmtp:(\\d*) apt=' + rtpmap + '\\r\\n)');
+            var aptmaps = modsdp.match(aptpre);
+            var fmtpmap = "";
+            if (aptmaps != null && aptmaps.length >= 3) {
+                fmtpmap = aptmaps[2];
+                // modsdp = modsdp.replace(aptpre, "");​
+                modsdp = modsdp.replace(aptpre, "");
+                var rtppre = new RegExp('(a=rtpmap:' + fmtpmap + '.*\r\n)', 'g');
+                modsdp = modsdp.replace(rtppre, "");
+            }
+            var videore = /(m=video.*\r\n)/;
+            var videolines = modsdp.match(videore);
+            if (videolines != null) {
+                //If many m=video are found in SDP, this program doesn't work.
+                var videoline = videolines[0].substring(0, videolines[0].length - 2);
+                var videoelem = videoline.split(" ");
+                var modvideoline = videoelem[0];
+                for (var i = 1; i < videoelem.length; i++) {
+                    if (videoelem[i] == rtpmap || videoelem[i] == fmtpmap) {
+                        continue;
+                    }
+                    modvideoline += " " + videoelem[i];
+                }
+                modvideoline += "\r\n";
+                modsdp = modsdp.replace(videore, modvideoline);
+            }
+            return internalFunc(modsdp);
+        };
+        return internalFunc(orgsdp);
+    }
+};

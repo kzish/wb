@@ -1,0 +1,901 @@
+var sharesGraph = {
+
+    svgContainer: null,
+    touchStartX: null,
+    touchStartXRelative: null,
+    keyInformation: null,
+    pointerDownEvent: null,
+
+    setDefaultLandingSharesGraph: function () {
+        var graphs = document.querySelectorAll(".graphDataContainer");
+
+        if (graphs == null || graphs.length <= 0) {
+            return;
+        }
+
+        keyInformation = document.querySelectorAll(".keyInformation");
+
+        var dataPoints;
+        var graphDataGraphIndividualContainer;
+        var first;
+        var graphTypeDefault;
+        var graphDataGraphSection;
+
+        var yAxis;
+        var yChildElementCount;
+
+        var xAxis;
+        var xChildElementCount;
+        var maxXValues;
+        var xAxiswidth;
+        var xValueWidth;
+
+        var graphDataGraphSectionSVG;
+        var tab;
+
+        var xLabels;
+        var yLabels;
+
+        var leftOfXLabel;
+        var centerOfXLabel;
+        var leftOfXLabelBoundingClientRect;
+
+        graphs.forEach(function (graphContainer) {
+
+            graphDataGraphIndividualContainer = graphContainer.querySelectorAll(".graphDataGraphIndividualContainer");
+            first = true;
+
+            graphDataGraphIndividualContainer.forEach(function (individualGraphContainer) {
+
+                graphTypeDefault = individualGraphContainer.getAttribute("data-defaultgraphtype");
+                graphDataGraphSection = individualGraphContainer.querySelector(".graphDataGraphSection");
+
+                xLabels = individualGraphContainer.querySelectorAll(".xLabels");
+                yLabels = individualGraphContainer.querySelectorAll(".yLabels");
+
+                //Align graph with yAxis
+                // graphDataGraphSection.style.height = "calc(100% - " + (yLabel.clientHeight/2) +"px)";
+
+                //Yaxis manipulation
+                //Reverse display of y values so that they are ascending from the bottom up
+                yAxis = individualGraphContainer.querySelector(".graphDataYAxisSection");
+                yChildElementCount = yAxis.childElementCount;
+
+                //Get 0 label below graph
+                // yAxis.style.top = (yLabel.clientHeight/2) + "px";
+
+                for (var iLoop = 0; iLoop < yAxis.childElementCount; iLoop++) {
+                    yAxis.children[iLoop].style.gridRow = (yChildElementCount--).toString();
+                };
+
+                //Xaxis manipulation
+                //Spread the width into windowsize sections (outside values are scrollable)
+                xAxis = individualGraphContainer.querySelector(".graphDataXAxisSection");
+                xChildElementCount = xAxis.childElementCount;
+                maxXValues = parseInt(xAxis.getAttribute("data-windowsize"));
+
+                //Can't make space for x labels that don't exist
+                if(maxXValues > xLabels.length){
+                    maxXValues = xLabels.length
+                }else if(maxXValues <= 0){
+                    maxXValues = 1;
+                }
+
+                xAxiswidth = xAxis.clientWidth;
+                xValueWidth = xAxiswidth / maxXValues;
+
+                xAxis.style.gridTemplateColumns = "repeat(" + xChildElementCount + ", " + xValueWidth + "px)";
+
+                if(graphTypeDefault == "LINE"){
+                    graphDataGraphSectionSVG = individualGraphContainer.querySelector(".graphDataGraphSectionSVGLine");
+                    graphDataGraphSection.activeGraphType = "LINE";
+
+                    graphDataGraphSection.drawnLine = "true";
+                    graphDataGraphSection.drawnCandle = "false";
+                }else if(graphTypeDefault == "CANDLE"){
+                    graphDataGraphSectionSVG = individualGraphContainer.querySelector(".graphDataGraphSectionSVGCandle");
+                    graphDataGraphSection.activeGraphType = "CANDLE";
+
+                    graphDataGraphSection.drawnLine = "false";
+                    graphDataGraphSection.drawnCandle = "true";
+                }
+
+                //Set landing graph
+                if (graphDataGraphSection.getAttribute("data-selected") == "Y") {
+
+                    //Highlight landing tab
+                    tab = graphContainer.querySelector(".graphDataTab" + individualGraphContainer.getAttribute("data-tab"));
+                    tab.style.borderBottomColor = tab.parentElement.getAttribute("data-selectColour");
+
+                    //Show relevant graph switcher buttons
+                    if(graphTypeDefault == "LINE"){
+                        document.querySelector(".lineGraphIcon").style.display = "";
+                        document.querySelector(".candleGraphAltIcon").style.display = "";
+                        svgContainer = graphDataGraphSectionSVG;
+                    }else if(graphTypeDefault == "CANDLE"){
+                        document.querySelector(".candleGraphIcon").style.display = "";
+                        document.querySelector(".lineGraphAltIcon").style.display = "";
+                        svgContainer = graphDataGraphSectionSVG;
+                    }
+                }
+
+                //Set widths and heights for drawing calculations
+                leftOfXLabelBoundingClientRect = xLabels[0].getBoundingClientRect();
+                leftOfXLabel = leftOfXLabelBoundingClientRect.right - leftOfXLabelBoundingClientRect.left;
+                centerOfXLabel = leftOfXLabel/2;
+
+                dataPoints = individualGraphContainer.querySelectorAll(".dataPoints");
+
+                //Draw graphs
+                if(graphTypeDefault == "LINE"){
+                    graphDataGraphSectionSVG.style.display = "";
+                    graphDataGraphSectionSVG.style.width = xValueWidth * xChildElementCount + "px";
+                    graphDataGraphSection.svgWidth = graphDataGraphSectionSVG.style.width;
+                    graphDataGraphSection.dataPoints = dataPoints;
+                    sharesGraph.drawLineSharesGraph(individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel);
+                }else if(graphTypeDefault == "CANDLE"){
+                    graphDataGraphSectionSVG.style.display = "";
+                    graphDataGraphSectionSVG.style.width = xValueWidth * xChildElementCount + "px";
+                    graphDataGraphSection.svgWidth = graphDataGraphSectionSVG.style.width;
+                    graphDataGraphSection.dataPoints = dataPoints;
+                    sharesGraph.drawCandleGraph(individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel);
+                }
+
+                //Draw grid lines
+                sharesGraph.sharesGraphDrawGridLines(individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel);
+
+                //Hide rest of graphs
+                if (graphDataGraphSection.getAttribute("data-selected") != "Y") {
+                    individualGraphContainer.style.display = "none";
+                }
+
+            });
+        });
+    },
+
+    drawLineSharesGraph: function (individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel) {
+        var svgPath = "";
+        var firstPoint = true;
+
+        var dataPoints = graphDataGraphSectionSVG.parentElement.dataPoints;
+        var sharesGraphBubbleContainer = document.querySelector(".sharesGraphBubbleContainer");
+        var windowStart = individualGraphContainer.getAttribute("data-windowStart");
+        var windowStartFound = false;
+
+        if(windowStart == null || windowStart == ""){
+            windowStartFound = true;
+        }
+
+        var high = 0;
+        var tempX = 0;
+        var tempY = 0;
+
+        //Store the (x, y) points of each graph
+        var xPositions = [];
+        var yPositions = [];
+        var xPositionsText = [];
+        var yPositionsText = [];
+
+        var SVGBoundingClientRect = graphDataGraphSectionSVG.getBoundingClientRect();
+        var max = 0;
+        var min = SVGBoundingClientRect.bottom - SVGBoundingClientRect.top;
+        var maxx = parseFloat(individualGraphContainer.getAttribute("data-max"));
+        var minn = parseFloat(individualGraphContainer.getAttribute("data-min"));
+
+        //Each x point is at the centre of the x Label (width/2)
+        //Each y point is at the centre of the y Label (height/2)
+        for (var iLoop = 0; iLoop < dataPoints.length; iLoop++) {
+
+            for(var iLoop2 = 0; iLoop2 < xLabels.length; iLoop2++){
+
+                //Move to windowstart position
+                if(windowStartFound == false){
+                    if(xLabels[iLoop2].getAttribute("data-position") == windowStart){
+                        var xAxis = svgContainer.parentElement.parentElement.querySelector(".graphDataXAxisSection");
+                        var moveTo = (leftOfXLabel * parseInt(xLabels[iLoop2].style.gridColumn) - leftOfXLabel) * - 1;
+                        sharesGraph.sharesGraphHandleTransform(moveTo, xAxis, "left");
+                        windowStartFound = true;
+                    }
+                }
+
+                if(xLabels[iLoop2].getAttribute("data-position") == dataPoints[iLoop].getAttribute("data-xpos")){
+                    //X
+                    tempX = leftOfXLabel * parseInt(xLabels[iLoop2].style.gridColumn) - centerOfXLabel;
+                    xPositionsText.push(xLabels[iLoop2]);
+
+                    //Y
+                    high = parseInt(dataPoints[iLoop].getAttribute("data-close"));
+                    tempY = (max - min) * ((high - minn) / (maxx - minn)) + min;
+                    yPositionsText.push(high);
+
+                    if(windowStartFound == true){
+                        break;
+                    }
+                }
+            };
+
+            if(firstPoint == true){
+                firstPoint = false;
+                svgPath += "M" + tempX + " " + tempY;
+            }else{
+                svgPath += " L" + tempX + " " + tempY;
+            }
+
+            //Store the (x, y) points of each graph
+            xPositions.push(tempX);
+            yPositions.push(tempY);
+        }
+
+        //Draw
+        graphDataGraphSectionSVG.firstElementChild.setAttribute("d", svgPath);
+        graphDataGraphSectionSVG.firstElementChild.setAttribute("fill", "transparent");
+        if((graphDataGraphSectionSVG.clientWidth > 0) && (sharesGraphBubbleContainer.style.width == "")){
+            sharesGraphBubbleContainer.style.width = graphDataGraphSectionSVG.clientWidth;
+        }
+
+        //Store the (x, y) points of each graph
+        graphDataGraphSectionSVG.xPositions = xPositions;
+        graphDataGraphSectionSVG.yPositions = yPositions;
+        graphDataGraphSectionSVG.xPositionsText = xPositionsText;
+        graphDataGraphSectionSVG.yPositionsText = yPositionsText;
+
+        //Setup graph interaction
+        sharesGraph.sharesGraphInteraction(graphDataGraphSectionSVG);
+
+    },
+
+    drawCandleGraph: function (individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel) {
+        var dataPoints = graphDataGraphSectionSVG.parentElement.dataPoints;
+
+        var svgPath = "";
+        var svgLineElement = null;
+
+        var unit = Root.determineVariableUnitNeeded();
+
+        var sharesGraphBubbleContainer = document.querySelector(".sharesGraphBubbleContainer");
+        var windowStart = individualGraphContainer.getAttribute("data-windowStart");
+        var windowStartFound = false;
+
+        if(windowStart == null || windowStart == ""){
+            windowStartFound = true;
+        }
+
+        var tempX = 0;
+
+        var high = 0;
+        var close = 0;
+        var open = 0;
+        var low = 0;
+        var neg = "";
+
+        var yHigh = 0;
+        var yClose = 0;
+        var yOpen = 0;
+        var yLow = 0;
+
+        var SVGBoundingClientRect = graphDataGraphSectionSVG.getBoundingClientRect();
+        var max = 0;
+        var min = SVGBoundingClientRect.bottom - SVGBoundingClientRect.top;
+        var maxx = parseFloat(individualGraphContainer.getAttribute("data-max"));
+        var minn = parseFloat(individualGraphContainer.getAttribute("data-min"));
+
+        //Store the (x, y) points of each graph
+        var xPositions = [];
+        var yPositions = [];
+        var xPositionsText = [];
+        var yPositionsText = [];
+
+        //Each x point is at the centre of the x Label (width/2)
+        //Each y point is at the centre of the y Label (height/2)
+        for (var iLoop = 0; iLoop < dataPoints.length; iLoop++) {
+
+            //New path for each candle
+            svgLineElement = document.createElementNS('http://www.w3.org/2000/svg','path');
+            svgLineElement.setAttribute("stroke-width", (unit * 0.4) + "px");
+
+            high = parseInt(dataPoints[iLoop].getAttribute("data-high"));
+            close = parseInt(dataPoints[iLoop].getAttribute("data-close"));
+            open = parseInt(dataPoints[iLoop].getAttribute("data-open"));
+            low = parseInt(dataPoints[iLoop].getAttribute("data-low"));
+            neg = dataPoints[iLoop].getAttribute("data-neg");
+
+            //For candle graph we need to find the corresponding Y co-ordinate value to each value (high, close, open, low)
+            //Draw candle and save x value for vertical line drawing
+
+            //X
+            tempX = leftOfXLabel * parseInt(xLabels[iLoop].style.gridColumn) - centerOfXLabel;
+            xPositionsText.push(xLabels[iLoop]);
+
+            //Y
+            yPositionsText.push(close);
+            yHigh = (max - min) * ((high - minn) / (maxx - minn)) + min;
+            yClose = (max - min) * ((close - minn) / (maxx - minn)) + min;
+            yOpen = (max - min) * ((open - minn) / (maxx - minn)) + min;
+            yLow = (max - min) * ((low - minn) / (maxx - minn)) + min;
+
+            if(neg == "N"){
+                svgLineElement.setAttribute("stroke", "var(--NEGATIVE_BALANCE_RED)");
+                svgLineElement.setAttribute("fill", "var(--NEGATIVE_BALANCE_RED)");
+
+                //Move to x
+                svgPath += "M" + tempX + " " + yLow;
+
+                //Draw up to below candle
+                svgPath += " L" + tempX + " " + yOpen;
+
+                //Draw candle/rectangle (width of candle is 1.6 units) so we add 0.8 to each side
+                svgPath += " L" + (tempX + (unit * 0.8)) + " " + yOpen;
+
+                svgPath += " L" + (tempX + (unit * 0.8)) + " " + yClose;
+
+                svgPath += " L" + (tempX - (unit * 0.8)) + " " + yClose;
+
+                svgPath += " L" + (tempX - (unit * 0.8)) + " " + yOpen;
+
+                svgPath += " L" + tempX + " " + yOpen;
+
+                //Draw line above candle
+                svgPath += " M" + tempX + " " + yClose;
+
+                svgPath += " L" + tempX + " " + yHigh;
+            }else if(neg == "Y"){
+                svgLineElement.setAttribute("stroke", "var(--POSITIVE_BALANCE_LIGHT_GREEN)");
+                svgLineElement.setAttribute("fill", "var(--POSITIVE_BALANCE_LIGHT_GREEN)");
+
+                //Move to x
+                svgPath += "M" + tempX + " " + yLow;
+
+                //Draw up to below candle
+                svgPath += " L" + tempX + " " + yClose;
+
+                //Draw candle/rectangle (width of candle is 1.6 units) so we add 0.8 to each side
+                svgPath += " L" + (tempX + (unit * 0.8)) + " " + yClose;
+
+                svgPath += " L" + (tempX + (unit * 0.8)) + " " + yOpen;
+
+                svgPath += " L" + (tempX - (unit * 0.8)) + " " + yOpen;
+
+                svgPath += " L" + (tempX - (unit * 0.8)) + " " + yClose;
+
+                svgPath += " L" + tempX + " " + yClose;
+
+                //Draw line above candle
+                svgPath += " M" + tempX + " " + yOpen;
+
+                svgPath += " L" + tempX + " " + yHigh;
+            }
+            
+            //Add path to svg and draw
+            graphDataGraphSectionSVG.prepend(svgLineElement);
+            svgLineElement.setAttribute("d", svgPath);
+            svgPath = "";
+
+            //Store the (x, y) points of each graph
+            xPositions.push(tempX);
+            yPositions.push(yClose);
+        }
+
+        for(var iLoop2 = 0; iLoop2 < xLabels.length; iLoop2++){
+            //Move to windowstart position
+            if(windowStartFound == false){
+                if(xLabels[iLoop2].getAttribute("data-position") == windowStart){
+                    var xAxis = svgContainer.parentElement.parentElement.querySelector(".graphDataXAxisSection");
+                    var moveTo = (leftOfXLabel * parseInt(xLabels[iLoop2].style.gridColumn) - leftOfXLabel) * - 1;
+                    sharesGraph.sharesGraphHandleTransform(moveTo, xAxis, "left");
+                    windowStartFound = true;
+                }
+            }
+        }
+
+        if((graphDataGraphSectionSVG.clientWidth > 0) && (sharesGraphBubbleContainer.style.width == "")){
+            sharesGraphBubbleContainer.style.width = graphDataGraphSectionSVG.clientWidth;
+        }
+
+        //Store the (x, y) points of each graph
+        graphDataGraphSectionSVG.xPositions = xPositions;
+        graphDataGraphSectionSVG.yPositions = yPositions;
+        graphDataGraphSectionSVG.xPositionsText = xPositionsText;
+        graphDataGraphSectionSVG.yPositionsText = yPositionsText;
+
+        //Setup graph interaction
+        sharesGraph.sharesGraphInteraction(graphDataGraphSectionSVG);
+    },
+
+    sharesGraphDrawGridLines: function (individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel) {
+
+        var svgPath = "";
+        var svgLineElement = null;
+
+        var xPoints = individualGraphContainer.querySelectorAll(".xPoints");
+        var yPoints = individualGraphContainer.querySelectorAll(".yPoints");
+
+        var tempX = 0;
+        var tempY = 0;
+
+        var height = graphDataGraphSectionSVG.clientHeight;
+        var width = graphDataGraphSectionSVG.clientWidth;
+
+        var SVGBoundingClientRect = graphDataGraphSectionSVG.getBoundingClientRect();
+        var max = 0;
+        var min = SVGBoundingClientRect.bottom - SVGBoundingClientRect.top;
+        var maxx = parseFloat(individualGraphContainer.getAttribute("data-max"));
+        var minn = parseFloat(individualGraphContainer.getAttribute("data-min"));
+
+        //Draw vertical grid lines
+        for (var iLoop = 0; iLoop < xPoints.length; iLoop++) {
+
+            svgLineElement = document.createElementNS('http://www.w3.org/2000/svg','path');
+            svgLineElement.setAttribute("stroke-width", "1px");
+
+            for(var iLoop2 = 0; iLoop2 < xLabels.length; iLoop2++){
+                if(xLabels[iLoop2].getAttribute("data-position") == xPoints[iLoop].getAttribute("data-position")){
+                    tempX = leftOfXLabel * parseInt(xLabels[iLoop2].style.gridColumn) - centerOfXLabel;
+                    svgLineElement.setAttribute("stroke", xPoints[iLoop].getAttribute("data-colour"));
+                    break;
+                }
+            };
+
+            //Add path to svg and draw
+            svgPath = "M" + tempX + " " + height + " L" + tempX + " 0";
+            graphDataGraphSectionSVG.prepend(svgLineElement);
+            svgLineElement.setAttribute("d", svgPath);
+            svgPath = "";
+
+        }
+
+        //Draw horizontal grid lines
+        for (var iLoop = 0; iLoop < yPoints.length; iLoop++) {
+
+            svgLineElement = document.createElementNS('http://www.w3.org/2000/svg','path');
+            svgLineElement.setAttribute("stroke-width", "2px");
+
+            tempY = (max - min) * ((parseFloat(yPoints[iLoop].getAttribute("data-position")) - minn) / (maxx - minn)) + min;
+            svgLineElement.setAttribute("stroke", yPoints[iLoop].getAttribute("data-colour"));
+
+            //Add path to svg and draw
+            svgPath = "M 0 " + tempY + " L" + width + " " + tempY;
+            graphDataGraphSectionSVG.prepend(svgLineElement);
+            svgLineElement.setAttribute("d", svgPath);
+            svgPath = "";
+
+        }
+
+    },
+
+    sharesGraphInteraction: function (graphDataGraphSectionSVG) {
+
+        //Handle movement during long press
+        var onTouchMoveHandler = function (eve) {
+            //Even without position change pointerMove is still called. So check for changes in X Y of touches to make sure
+            if(eve.clientX != pointerDownEvent.clientX || eve.clientY != pointerDownEvent.clientY){
+
+                window.requestAnimationFrame(function () {
+
+                    sharesGraph.moveSharesGraphVerticalLineWithBubble(eve);
+
+                });
+
+            }
+        };
+
+        //Stop long press menu from coming up
+        window.oncontextmenu = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+
+        //Long press on graph
+        graphDataGraphSectionSVG.addEventListener('long-press', function (e) {
+            // stop the event from bubbling up
+            e.preventDefault();
+
+            svgContainer.setAttribute("data-line","true");
+            sharesGraph.determineWhereToDrawVerticalLine(svgContainer);
+
+            window.addEventListener("pointermove", onTouchMoveHandler);
+        });
+
+        //Scrolling graph and x-axis horizontally
+        graphDataGraphSectionSVG.addEventListener("pointerdown", function (ev) {
+
+            sharesGraph.getSharesGraphSVGContainer(ev);
+            pointerDownEvent = ev;
+            touchStartX = ev.clientX;
+
+            var svgContainerAccurateDimensions = svgContainer.getBoundingClientRect();
+            touchStartXRelative = touchStartX - svgContainerAccurateDimensions.left;
+
+            var onTouchEndHandler = function () {
+                //Reset and hide
+                var svgChildren = svgContainer.children;
+                var svgChildrenLength = svgChildren.length;
+
+                window.removeEventListener("pointermove", onTouchMoveHandler);
+                window.removeEventListener("pointerup", onTouchEndHandler);
+
+                svgChildren[svgChildrenLength - 1].style.display = "none";
+                svgChildren[svgChildrenLength - 2].style.display = "none";
+                svgChildren[svgChildrenLength - 3].style.display = "none";
+                document.querySelector(".sharesGraphBubble").style.opacity = "0";
+
+                svgContainer.setAttribute("data-line", "false");
+            };
+
+            window.addEventListener("pointerup", onTouchEndHandler);
+
+        });
+
+    },
+
+    getSharesGraphSVGContainer: function (e){
+        //Calculations based off of target being the SVG container not the paths/content inside
+        if(e.target.classList.contains("graphDataGraphSectionSVG")){
+            svgContainer = e.target;
+        }else{
+            svgContainer = e.target.parentElement;
+        }
+    },
+
+    determineWhereToDrawVerticalLine: function (moving, direction) {
+
+        //Move line to closest given x point
+        var xPositions = svgContainer.xPositions;
+        var yPositions = svgContainer.yPositions;
+        var xLabels = svgContainer.xPositionsText;
+        var yLabels = svgContainer.yPositionsText;
+        var firstValue = 0;
+        var secondValue = 0;
+        var arrayLength = svgContainer.parentElement.dataPoints.length - 1; //All arrays are same size. They are ordered so that arr[0] relates to arr2[0] and vice versa
+
+        if(moving == true && direction != null){//User moving line
+            var index = svgContainer.index;
+
+            //Move line to next position or previous position or stay
+            if(direction == "left"){
+                if(index > 0){
+                    svgContainer.index = --index;
+                }
+                sharesGraph.drawSharesGraphVerticalLineWithBubble(xPositions[index], yPositions[index], yLabels[index], xLabels[index]);
+            }else if(direction == "right"){
+                if(index < arrayLength){
+                    svgContainer.index = ++index;
+                }
+                sharesGraph.drawSharesGraphVerticalLineWithBubble(xPositions[index], yPositions[index], yLabels[index], xLabels[index]);
+            }
+        }else{//User long pressed
+            for(var iLoop = 0; iLoop < arrayLength; iLoop++){
+
+                //Edge cases
+                if(touchStartXRelative < xPositions[0]){
+                    sharesGraph.drawSharesGraphVerticalLineWithBubble(xPositions[0], yPositions[0], yLabels[0], xLabels[0]);
+                    svgContainer.index = 0;
+                    break;
+                }else if(xPositions[xPositions.length - 1] < touchStartXRelative){
+                    sharesGraph.drawSharesGraphVerticalLineWithBubble(xPositions[arrayLength], yPositions[arrayLength], yLabels[arrayLength], xLabels[arrayLength]);
+                    svgContainer.index = arrayLength;
+                    break;
+                }
+
+                //Find which points the user touch is between
+                if((xPositions[iLoop] < touchStartXRelative) && (xPositions[iLoop + 1] > touchStartXRelative)){
+
+                    //Find closest position to where user touched
+                    firstValue = touchStartXRelative - xPositions[iLoop];
+                    secondValue = xPositions[iLoop + 1] - touchStartXRelative;
+
+                    if(firstValue < secondValue){
+                        sharesGraph.drawSharesGraphVerticalLineWithBubble(xPositions[iLoop], yPositions[iLoop], yLabels[iLoop], xLabels[iLoop]);
+                        svgContainer.index = iLoop;
+                    }else{
+                        sharesGraph.drawSharesGraphVerticalLineWithBubble(xPositions[iLoop + 1], yPositions[iLoop + 1], yLabels[iLoop + 1], xLabels[iLoop + 1]);
+                        svgContainer.index = iLoop + 1;
+                    }
+                    break;
+                }
+            }
+        }
+
+    },
+
+    drawSharesGraphVerticalLineWithBubble: function (xValue, yValue, yText, xText) {
+        var unit = Root.determineVariableUnitNeeded();
+        var svgChildren = svgContainer.children;
+        var svgChildrenLength = svgChildren.length;
+
+        //Create boundaries and scroll/remain when user passes/reaches boundary
+        var visibleWidth = svgContainer.parentElement.clientWidth;
+        var fullWidth = svgContainer.parentElement.scrollWidth;
+        var scrolledDistance;
+        var visibleSpace;
+        var xAxis = svgContainer.parentElement.parentElement.querySelector(".graphDataXAxisSection");
+        var keepMoving = true;
+
+        while(keepMoving == true){
+            scrolledDistance = parseFloat(svgContainer.getAttribute("data-move")) * -1;
+            visibleSpace = visibleWidth + scrolledDistance;
+            //Within visible space. No need to scroll
+            if(xValue >= scrolledDistance && xValue <= visibleSpace){
+                keepMoving = false;
+            }else if(xValue >= visibleSpace) {//Scroll left (move right)
+                sharesGraph.scrollSharesGraphToKeepLineInBoundaries("left", xAxis);
+            }else if(xValue <= scrolledDistance){//Scroll right (move left)
+                sharesGraph.scrollSharesGraphToKeepLineInBoundaries("right", xAxis);
+            }
+        }
+
+        //Set highs and lows
+        var dataPoints = svgContainer.parentElement.dataPoints;
+        var dataPoint;
+        for (var iLoop = 0; iLoop < dataPoints.length; iLoop++) {
+            if (dataPoints[iLoop].getAttribute("data-xpos") == xText.getAttribute("data-position")) {
+                dataPoint = dataPoints[iLoop];
+                break;
+            }
+        }
+
+        //Have bubble follow vertical line
+        var sharesGraphBubble = document.querySelector(".sharesGraphBubble");
+
+        sharesGraphBubble.innerText = yText;//Set text before calc due to width:fit-content
+
+        var verticalLineCentre = (xValue - (sharesGraphBubble.clientWidth/2)) - (parseInt(svgContainer.getAttribute("data-move")) * -1);
+
+        sharesGraphBubble.style.left = verticalLineCentre + "px";
+        sharesGraphBubble.style.opacity = "1";
+
+        //Draw Horizontal dashed line
+        var line = svgChildren[svgChildrenLength - 3];
+
+        line.style.display = "";
+        line.setAttribute("x1", 0);
+        line.setAttribute("y1", yValue);
+        line.setAttribute("x2", fullWidth);
+        line.setAttribute("y2", yValue);
+
+        //Vertical line from top to bottom
+        var line = svgChildren[svgChildrenLength - 2];
+
+        line.style.display = "";
+        line.setAttribute("x1", xValue);
+        line.setAttribute("y1", 0);
+        line.setAttribute("x2", xValue);
+        line.setAttribute("y2", svgContainer.clientHeight);
+
+        //Circle at position
+        var circle = svgChildren[svgChildrenLength - 1];
+        circle.style.display = "";
+        circle.setAttribute("cx", xValue);
+        circle.setAttribute("cy", yValue);
+        circle.setAttribute("r", (unit * 2) + "px");
+    },
+
+    scrollSharesGraphToKeepLineInBoundaries: function (direction, xAxis) {
+        var movementValue = parseInt(svgContainer.getAttribute("data-move"));
+        var moveTo = 0;
+
+        var leftOfXLabelBoundingClientRect = xAxis.firstElementChild.getBoundingClientRect();
+        var widthOfXLabel = leftOfXLabelBoundingClientRect.right - leftOfXLabelBoundingClientRect.left;
+
+        if (direction == "left") {//pointer moving right, graph going left
+            moveTo = movementValue - widthOfXLabel;
+            sharesGraph.sharesGraphHandleTransform(moveTo, xAxis, "left");
+        } else if (direction == "right") {//pointer moving left, graph going right
+            moveTo = movementValue + widthOfXLabel;
+            sharesGraph.sharesGraphHandleTransform(moveTo, xAxis, "right");
+        }
+    },
+
+    sharesGraphHandleTransform: function (moveTo, xAxis, direction) {
+        var leftOfXLabelBoundingClientRect = xAxis.firstElementChild.getBoundingClientRect();
+        var widthOfXLabel = leftOfXLabelBoundingClientRect.right - leftOfXLabelBoundingClientRect.left;
+
+        var visibleWidth = svgContainer.parentElement.clientWidth;
+        var fullWidth = svgContainer.parentElement.scrollWidth;
+        var max = (fullWidth - visibleWidth) * - 1;
+
+        if(direction == "left"){
+            if(moveTo <= max || (moveTo >= max && moveTo <= (max + widthOfXLabel))){
+                moveTo = max;
+            }
+        }else if(direction == "right"){
+            if(moveTo >= 0 || (moveTo <= 0 && moveTo >= (widthOfXLabel * -1))){
+                moveTo = 0;
+            }
+        }
+
+        //Only on xAxis for both graphs on current tab
+        xAxis.style.transform = "translate3d(" + moveTo + "px, 0px, 0px) scale(1)";
+
+        //Move both SVG's so that when user switches to other view they are still in the same place
+        var graphDataGraphSection = svgContainer.parentElement;
+
+        var svgCandle = graphDataGraphSection.querySelector(".graphDataGraphSectionSVGCandle");
+        svgCandle.style.transform = "translate3d(" + moveTo + "px, 0px, 0px) scale(1)";
+        svgCandle.setAttribute("data-move", moveTo);
+
+        var svgLine = graphDataGraphSection.querySelector(".graphDataGraphSectionSVGLine");
+        svgLine.style.transform = "translate3d(" + moveTo + "px, 0px, 0px) scale(1)";
+        svgLine.setAttribute("data-move", moveTo);
+    },
+
+    moveSharesGraphVerticalLineWithBubble: function (eve) {
+        //Get the x positions relative to the svgContainer
+        var svgContainerAccurateDimensions = svgContainer.getBoundingClientRect();
+        svgContainer.touchMoveX = eve.clientX;
+        svgContainer.touchMoveX = svgContainer.touchMoveX - svgContainerAccurateDimensions.left;
+
+        if(svgContainer.amendTouchStart != null){
+            touchStartXRelative = svgContainer.touchMoveX;
+            svgContainer.amendTouchStart = null;
+        }
+
+        //Control speed of line movement (% of screenwidth)
+        var movementSensitivity = 4/100 * window.innerWidth;
+
+        if (svgContainer.touchMoveX < touchStartXRelative) {//pointer moving left
+
+            if((touchStartXRelative - svgContainer.touchMoveX) > movementSensitivity){
+                sharesGraph.determineWhereToDrawVerticalLine(true, "left");
+                svgContainer.amendTouchStart = true;
+            }
+
+        } else if (svgContainer.touchMoveX > touchStartXRelative) {//pointer moving right
+
+            if((svgContainer.touchMoveX - touchStartXRelative) > movementSensitivity) {
+                sharesGraph.determineWhereToDrawVerticalLine(true, "right");
+                svgContainer.amendTouchStart = true;
+            }
+
+        }
+    },
+
+    changeSharesGraphTab: function (el) {
+        var graphDataContainer = el.parentElement.parentElement;
+        var graphDataGraphIndividualContainer = graphDataContainer.querySelectorAll(".graphDataGraphIndividualContainer");
+        var tabContainer = el.parentElement;
+        var tabs = tabContainer.querySelectorAll(".graphDataTab");
+
+        //Highlight selected tab
+        tabs.forEach(function (value) {
+            value.style.borderBottomColor = "transparent";
+        });
+
+        el.style.borderBottomColor = tabContainer.getAttribute("data-selectColour");
+
+        //Hide all graphs except selected one
+        graphDataGraphIndividualContainer.forEach(function (individualGraph) {
+
+            if (individualGraph.getAttribute("data-tab") == el.innerText) {
+                var graphDataGraphSection = individualGraph.querySelector(".graphDataGraphSection");
+                var previousTabActiveType = svgContainer.parentElement.activeGraphType;
+
+                individualGraph.style.display = "grid";
+
+                //Show graph type based on defaultgraphtype for that graph
+                //Change graph type switcher icons if needed
+                if(graphDataGraphSection.activeGraphType == "LINE"){
+                    svgContainer = graphDataGraphSection.querySelector(".graphDataGraphSectionSVGLine");
+                    sharesGraph.graphTypeSwitcher("LINE", previousTabActiveType);
+                }else if(graphDataGraphSection.activeGraphType == "CANDLE"){
+                    svgContainer = graphDataGraphSection.querySelector(".graphDataGraphSectionSVGCandle");
+                    sharesGraph.graphTypeSwitcher("CANDLE", previousTabActiveType);
+                }
+
+            } else {
+                individualGraph.style.display = "none";
+            }
+
+        });
+    },
+
+    graphTypeSwitcher : function(graphTypeToChangeTo, activeGraphType){
+        var graphDataGraphSection = svgContainer.parentElement;
+
+        //When user moves to a different tab we want to align the icons with that tab
+        if((activeGraphType != null) && (graphTypeToChangeTo != activeGraphType)){
+            if(graphTypeToChangeTo == "LINE"){
+                //Hide show relevant icons
+                document.querySelector(".lineGraphAltIcon").style.display = "none";
+                document.querySelector(".candleGraphIcon").style.display = "none";
+                document.querySelector(".lineGraphIcon").style.display = "";
+                document.querySelector(".candleGraphAltIcon").style.display = "";
+            }else if(graphTypeToChangeTo  == "CANDLE"){
+                document.querySelector(".lineGraphIcon").style.display = "none";
+                document.querySelector(".candleGraphAltIcon").style.display = "none";
+                document.querySelector(".candleGraphIcon").style.display = "";
+                document.querySelector(".lineGraphAltIcon").style.display = "";
+            }
+            return;
+        }else{
+            activeGraphType = graphDataGraphSection.activeGraphType;
+        }
+
+        //Switch graph types and icons
+        if(graphTypeToChangeTo == "LINE" && activeGraphType == "LINE"){
+
+            return;//User selected already selected graph
+
+        }else if(graphTypeToChangeTo == "CANDLE" && activeGraphType == "CANDLE"){
+
+            return;//User selected already selected graph
+
+        }else if(graphTypeToChangeTo == "LINE" && activeGraphType == "CANDLE"){
+
+            var graphDataGraphSectionSVG = graphDataGraphSection.querySelector(".graphDataGraphSectionSVGLine");
+
+            //Switch to line
+            graphDataGraphSection.activeGraphType = "LINE";
+            //Hide show relevant icons
+            document.querySelector(".lineGraphAltIcon").style.display = "none";
+            document.querySelector(".candleGraphIcon").style.display = "none";
+            document.querySelector(".lineGraphIcon").style.display = "";
+            document.querySelector(".candleGraphAltIcon").style.display = "";
+
+            if(graphDataGraphSection.drawnLine == "false"){
+                //Draw and show
+                var individualGraphContainer = graphDataGraphSection.parentElement;
+                var xLabels = individualGraphContainer.querySelectorAll(".xLabels");
+                var yLabels = individualGraphContainer.querySelectorAll(".yLabels");
+
+                var leftOfXLabelBoundingClientRect = xLabels[0].getBoundingClientRect();
+                var leftOfXLabel = leftOfXLabelBoundingClientRect.right - leftOfXLabelBoundingClientRect.left;
+                var centerOfXLabel = xLabels[0].clientWidth/2;
+
+                graphDataGraphSection.drawnLine = "true";
+                svgContainer.style.display = "none";
+                graphDataGraphSectionSVG.style.display = "";
+                graphDataGraphSectionSVG.style.width = graphDataGraphSection.svgWidth;
+                svgContainer = graphDataGraphSectionSVG;
+                sharesGraph.drawLineSharesGraph(individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel);
+
+                //Draw grid lines
+                sharesGraph.sharesGraphDrawGridLines(individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel);
+            }else{
+                //Show
+                svgContainer.style.display = "none";
+                svgContainer = graphDataGraphSectionSVG;
+                graphDataGraphSectionSVG.style.display = "";
+            }
+
+
+        }else if(graphTypeToChangeTo == "CANDLE" && activeGraphType == "LINE"){
+
+            var graphDataGraphSectionSVG = graphDataGraphSection.querySelector(".graphDataGraphSectionSVGCandle");
+
+            //Switch to candle
+            graphDataGraphSection.activeGraphType = "CANDLE";
+            //Hide show relevant icons
+            document.querySelector(".lineGraphIcon").style.display = "none";
+            document.querySelector(".candleGraphAltIcon").style.display = "none";
+            document.querySelector(".candleGraphIcon").style.display = "";
+            document.querySelector(".lineGraphAltIcon").style.display = "";
+
+            if(graphDataGraphSection.drawnCandle == "false"){
+                //Draw and show
+                var individualGraphContainer = graphDataGraphSection.parentElement;
+                var xLabels = individualGraphContainer.querySelectorAll(".xLabels");
+                var yLabels = individualGraphContainer.querySelectorAll(".yLabels");
+
+                var leftOfXLabelBoundingClientRect = xLabels[0].getBoundingClientRect();
+                var leftOfXLabel = leftOfXLabelBoundingClientRect.right - leftOfXLabelBoundingClientRect.left;
+                var centerOfXLabel = xLabels[0].clientWidth/2;
+
+                graphDataGraphSection.drawnCandle = "true";
+                svgContainer.style.display = "none";
+                graphDataGraphSectionSVG.style.width = graphDataGraphSection.svgWidth;
+                svgContainer = graphDataGraphSectionSVG;
+                graphDataGraphSection.querySelector(".graphDataGraphSectionSVGCandle").style.display = "";
+                sharesGraph.drawCandleGraph(individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel);
+
+                //Draw grid lines
+                sharesGraph.sharesGraphDrawGridLines(individualGraphContainer, graphDataGraphSectionSVG, xLabels, leftOfXLabel, centerOfXLabel);
+            }else{
+                //Show
+                svgContainer.style.display = "none";
+                svgContainer = graphDataGraphSectionSVG;
+                graphDataGraphSection.querySelector(".graphDataGraphSectionSVGCandle").style.display = "";
+            }
+
+        }
+    }
+};

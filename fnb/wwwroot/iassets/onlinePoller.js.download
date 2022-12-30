@@ -1,0 +1,53 @@
+var OnlinePoller = {
+
+    id: "",
+
+    options: {
+        interval:180000,
+        pollOnline: false,
+    },
+
+    /** Start of: Poll Online **/
+    _pollOnline: function () {
+        parent.postMessage('{"event": {"type":"keepalive"}}', "*");
+    },
+    /** End of: Poll Online **/
+
+    /** Poll Session Timeout **/
+    _sessionTimeOut: function () {
+        try {
+            var response = JSON.parse(this.responseText);
+
+            if(response.sessionTimeOut != null && response.sessionTimeOut.toLowerCase() == "fail"){
+                OnlinePoller.options.pollOnline = false;
+                Timers.clear();
+            }
+
+        }
+        catch (exception) {
+            console.log("Polling SessionTimeout error");
+        }
+
+    },
+    /** End of: Poll Session Timeout **/
+
+    _pollSessionTimeOut: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/pollSession");
+        xhr.onload = OnlinePoller._sessionTimeOut.bind(xhr);
+        xhr.send();
+    },
+
+
+    start: function () {
+        var timerId = setInterval(function () {
+
+            if (OnlinePoller.options.pollOnline) {
+                OnlinePoller._pollOnline();
+            }
+        }, OnlinePoller.options.interval);
+
+        Timers.register(timerId);
+        OnlinePoller.id = timerId;
+    }
+};

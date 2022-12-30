@@ -1,0 +1,310 @@
+var ImageCropper = function(config) {
+    //if (!config || (!config.inputElement) || (!config.inputElement.getAttribute) || config.inputElement.getAttribute('type') !== 'file') {
+    //    throw new Error('Config object passed to ImageUploader constructor must include "inputElement" set to be an element of type="file"');
+    //}
+    this.setConfig(config);
+
+    this.cropOverlay = document.createElement('div');
+    this.cropOverlay.id = 'crop-overlay';
+    this.cropOverlay.className = 'crop-overlay';
+//    this.cropOverlay.addEventListener('touchmove', function(e) {
+//    	e.preventDefault();
+//    }, false);
+
+    this.container = document.createElement('div');
+    this.container.className = 'crop-container';
+    this.cropOverlay.appendChild(this.container);
+
+    this.buildBase();
+    
+
+    document.body.appendChild(this.cropOverlay);
+
+    window.scrollTo(0, 1);
+};
+
+ImageCropper.prototype.buildBase = function() {
+
+    var imageArea = document.createElement('div');
+    imageArea.className = 'image-area';
+
+    var buttonArea = document.createElement('div');
+    buttonArea.className = 'button-area';
+
+    var zoomWrapper = document.createElement('div');
+    zoomWrapper.className = 'cell zoom-wrapper';
+
+    var zoomInput = document.createElement('input');
+    zoomInput.className = 'ic-zoom-input';
+    zoomInput.setAttribute('type', 'range');
+
+    var rotateButtonWrapper = document.createElement('div');
+    rotateButtonWrapper.className = 'cell';
+
+    var rotateButton = document.createElement('a');
+    rotateButton.className = 'button rotate ic-button-rotate';
+    rotateButton.setAttribute('href', '#');
+
+    var okButtonWrapper = document.createElement('div');
+    okButtonWrapper.className = 'cell';
+
+    var okButton = document.createElement('a');
+    okButton.className = 'button ok ic-button-ok';
+    okButton.setAttribute('href', '#');
+
+    this.container.appendChild(imageArea);
+    this.container.appendChild(buttonArea);
+    buttonArea.appendChild(zoomWrapper);
+    zoomWrapper.appendChild(zoomInput);
+    buttonArea.appendChild(rotateButtonWrapper);
+    rotateButtonWrapper.appendChild(rotateButton);
+    buttonArea.appendChild(okButtonWrapper);
+    okButtonWrapper.appendChild(okButton);
+
+    this.buildImageWrap();
+
+    this.setupZoomEvents();    
+    this.setupButtonEvents();
+
+}
+
+ImageCropper.prototype.buildImageWrap = function() {
+
+    var imageArea = this.container.getElementsByClassName('image-area')[0];
+
+    while (imageArea.firstChild) {
+        imageArea.removeChild(imageArea.firstChild);
+    }
+
+    var imageWrap = document.createElement('div');
+    imageWrap.className = 'image-wrap';
+    imageWrap.appendChild(document.createElement('img'));
+
+    imageArea.appendChild(imageWrap);
+
+    var This = this;
+    setTimeout(function() {
+       This.setupImage();
+       This.setupTouchEvents();  
+    }, 0);
+
+}
+
+ImageCropper.prototype.setupImage = function() {
+
+    var imageAreaElement = this.container.getElementsByClassName('image-area')[0];
+    var imageWrapElement = imageAreaElement.getElementsByClassName('image-wrap')[0];
+    var imageElement = imageWrapElement.getElementsByTagName('img')[0];
+
+    var multiplier = Math.floor(Math.min(imageAreaElement.offsetWidth / this.config.aspectX, imageAreaElement.offsetHeight / this.config.aspectY));
+    
+    console.log(multiplier);
+
+    imageWrapElement.style.width = (this.config.aspectX * multiplier - 16) + 'px';
+    imageWrapElement.style.height = (this.config.aspectY * multiplier - 16) + 'px';
+
+    var This = this;
+    imageElement.onload = function() {
+
+        This.realImageWidth = imageElement.offsetWidth;
+        This.realImageHeight = imageElement.offsetHeight;
+
+        var imgRatio = imageElement.offsetWidth / imageElement.offsetHeight;
+        var wrapRatio = This.config.aspectX / This.config.aspectY;
+
+        if (imgRatio <= wrapRatio) {
+            imageElement.style.width = imageWrapElement.style.width;    
+        } else {
+            imageElement.style.height = imageWrapElement.style.height;
+        }
+
+        This.initialImageWidth = imageElement.offsetWidth;
+        This.initialImageHeight = imageElement.offsetHeight;
+
+    };
+
+    imageElement.src = this.config.image;
+};
+
+ImageCropper.prototype.setupTouchEvents = function() {
+
+    var imageWrapElement = this.container.getElementsByClassName('image-wrap')[0];
+    var imageElement = this.container.getElementsByTagName('img')[0];
+
+    var This = this;
+    imageElement.addEventListener('touchstart', function(e) {
+        var touchobj = e.changedTouches[0];
+        This.startX = parseInt(touchobj.clientX);
+        This.startY = parseInt(touchobj.clientY);
+        This.imgStartY = imageElement.offsetTop;
+        This.imgStartX = imageElement.offsetLeft;
+        e.preventDefault();
+    }, false)
+
+    imageElement.addEventListener('touchmove', function(e) {
+        var touchobj = e.changedTouches[0]; // reference first touch point for this event
+        var deltaX = parseInt(touchobj.clientX) - This.startX;
+        var deltaY = parseInt(touchobj.clientY) - This.startY;
+
+        var x1 = This.imgStartX + deltaX;
+        var y1 = This.imgStartY + deltaY;
+        var x2 = x1 + imageElement.offsetWidth;
+        var y2 = y1 + imageElement.offsetHeight;
+
+        if (x1 > 0) {
+            e.target.style.left = "0";
+        } else if (x2 < imageWrapElement.offsetWidth) {
+            e.target.style.left = (imageWrapElement.offsetWidth - imageElement.offsetWidth) + "px";
+        } else {
+            e.target.style.left = x1 + "px";
+        }
+
+        if (y1 > 0) {
+            e.target.style.top = "0";
+        } else if (y2 < imageWrapElement.offsetHeight) {
+            e.target.style.top = (imageWrapElement.offsetHeight - imageElement.offsetHeight) + "px";
+        } else {
+            e.target.style.top = y1 + "px";
+        }
+
+
+        e.preventDefault();
+    }, false);   
+
+
+
+}
+
+ImageCropper.prototype.setupZoomEvents = function() {
+
+    var zoomInput = this.container.getElementsByClassName("ic-zoom-input")[0];
+
+    zoomInput.value = 0;
+
+    var This = this;
+    
+    zoomInput.addEventListener("change", function() {
+        
+        This.updateZoomSize(zoomInput.value);
+
+    }, false);
+
+};
+
+ImageCropper.prototype.updateZoomSize = function(value) {
+
+	var imageWrapElement = this.container.getElementsByClassName('image-wrap')[0];
+    var imageElement = this.container.getElementsByTagName('img')[0];
+    
+    if (imageElement.style.width != "") {
+        var newWidth = ((this.realImageWidth - this.initialImageWidth) / 100 * value) + this.initialImageWidth;
+        imageElement.style.width = Math.round(newWidth) + 'px';
+    } else {
+        var newHeight = ((this.realImageHeight - this.initialImageHeight) / 100 * value) + this.initialImageHeight;
+        imageElement.style.height = Math.round(newHeight) + 'px';
+    }
+    
+    if (imageElement.offsetLeft > 0) {
+    	imageElement.style.left = "0";
+    }
+    if (imageElement.offsetLeft + imageElement.offsetWidth < imageWrapElement.offsetWidth) {
+    	imageElement.style.left = (imageWrapElement.offsetWidth - imageElement.offsetWidth) + "px"; 
+    }
+    if (imageElement.offsetTop > 0) {
+    	imageElement.style.top = "0";
+    }
+    if (imageElement.offsetTop + imageElement.offsetHeight < imageWrapElement.offsetHeight) {
+    	imageElement.style.top = (imageWrapElement.offsetHeight - imageElement.offsetHeight) + "px"; 
+    }
+    
+    console.log('Image dimensions: ' + imageElement.offsetWidth + 'x' + imageElement.offsetHeight);
+} 
+
+ImageCropper.prototype.setupButtonEvents = function() {
+
+    var rotateButton = this.container.getElementsByClassName('ic-button-rotate')[0];
+    var okButton = this.container.getElementsByClassName('ic-button-ok')[0];
+    var imageElement = this.container.getElementsByTagName('img')[0];
+    var zoomInput = this.container.getElementsByClassName("ic-zoom-input")[0];
+
+    var This = this;
+    rotateButton.onclick = function() {
+
+        var image = document.createElement('img');
+
+        image.onload = function() {
+        	
+            var canvas = document.createElement('canvas');
+            This.rotate90(canvas, image)
+            This.config.image = canvas.toDataURL();
+            This.buildImageWrap();
+
+        };
+
+        image.src = This.config.image;
+        zoomInput.value = 0;
+
+        return false;
+    };
+
+    okButton.onclick = function() {
+        This.doCrop();
+    };
+
+}
+
+
+
+
+ImageCropper.prototype.rotate90 = function(canvasTarget, image) {
+  canvasTarget.width = image.height;
+  canvasTarget.height = image.width;
+  var ctxtarget = canvasTarget.getContext("2d");   
+  ctxtarget.translate(image.height, 0);
+  ctxtarget.rotate(Math.PI / 2);  
+  ctxtarget.drawImage(image, 0, 0);  
+}
+
+ImageCropper.prototype.doCrop = function() {
+    
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+
+    var imageWrapElement = this.container.getElementsByClassName('image-wrap')[0];
+    var imageElement = this.container.getElementsByTagName('img')[0];
+    var zoomInput = this.container.getElementsByClassName("ic-zoom-input")[0];
+
+    var scaleX = this.realImageWidth / imageElement.offsetWidth;
+    var scaleY = this.realImageHeight / imageElement.offsetHeight;
+
+    var sx = Math.round(imageElement.offsetLeft * scaleX * -1);
+    var sy = Math.round(imageElement.offsetTop * scaleY * -1);
+    var swidth = Math.round(imageWrapElement.offsetWidth * scaleX);
+    var sheight = Math.round(imageWrapElement.offsetHeight * scaleY);
+
+    console.log("Cropping image: " + sx + ", " + sy + ", " + swidth + ", " + sheight);
+
+    canvas.width = swidth;
+    canvas.height = sheight;
+
+    var This = this;
+    var image = document.createElement('img');
+    image.onload = function() {
+        ctx.drawImage(image, sx, sy, swidth, sheight, 0, 0, swidth, sheight);
+
+        if (This.config.onCrop) {
+            This.config.onCrop(canvas.toDataURL());
+        }
+
+        This.cropOverlay.parentNode.removeChild(This.cropOverlay);
+    };
+    image.src = This.config.image;
+}
+
+
+ImageCropper.prototype.setConfig = function(customConfig) {
+    this.config = customConfig;
+    this.config.aspectX = customConfig.aspectX || 1;
+    this.config.aspectY = customConfig.aspectY || 1;
+    this.config.zoomAmount = customConfig.zoomAmount || 10;
+};

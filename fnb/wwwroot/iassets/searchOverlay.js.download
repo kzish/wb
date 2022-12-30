@@ -1,0 +1,387 @@
+var SearchOverlay = {
+
+    active: false,
+
+    toggle: function () {
+        var searchOverlay = document.getElementById("searchOverlay");
+        var searchOverlayInput = document.getElementById("searchOverlayInput");
+        var searchNoResult = document.getElementById("seachNoResultID");
+
+
+        if(searchOverlay != null && searchOverlay.classList.contains("visibleSearchAnimation"))//animation search cancel
+        {
+            var searchOverlay = document.getElementById("searchOverlay");
+
+            var searchUISymbolContainerGrid = document.querySelector(".searchUISymbolWrapper");
+
+            if(searchUISymbolContainerGrid!= null)
+                searchUISymbolContainerGrid.style.animationName = "";
+
+            var header = document.getElementById("headerFixed");
+            header.style.zIndex = 1;
+
+            Util.toggleClass(searchOverlay, "visibleSearchAnimation");
+            SearchOverlay.active = false;
+
+        }else //normal search cancel
+        {
+            Util.toggleClass(searchOverlay, "visible");
+            if (Util.hasClass(searchOverlay, "visible")) {
+                SearchOverlay.active = true;
+                searchNoResult.style.display = "none";
+                SearchOverlay.clearInput();
+                SearchOverlay.clearGroup();
+                SearchOverlay.search(searchOverlayInput);
+
+            } else {
+
+                SearchOverlay.active = false;
+            }
+        }
+
+
+    },
+
+
+    toggleSearchAnimation: function () {
+
+        var searchOverlay = document.getElementById("searchOverlay");
+        var searchOverlayInput = document.getElementById("searchOverlayInput");
+        var searchNoResult = document.getElementById("seachNoResultID");
+
+        var searchUISymbolContainerGrid = document.querySelector(".searchUISymbolWrapper");
+        var searchOverlayBackdrop = document.querySelector(".searchOverlayBackdrop");
+
+        //Doing css animation in JS because margin top is not static/////////////
+        var rootUnit = (Root.unit());
+        var SearchStyle = document.querySelector(".SearchStyle");
+
+        //To get top value at fixed position for animation
+        searchUISymbolContainerGrid.style.position = "fixed";
+
+        var SearchMarginToppx = window.getComputedStyle(searchUISymbolContainerGrid).top;
+        var SearchMarginTop = parseInt(SearchMarginToppx.substring(0, SearchMarginToppx.length - 2)) - (rootUnit * 5);
+
+        if(SearchMarginTop <= (rootUnit * 12))//if at the top of the screen already
+        {
+            SearchMarginTop = parseInt(SearchMarginToppx.substring(0, SearchMarginToppx.length - 2));
+        }
+
+        var header = document.getElementById("headerFixed");
+
+        searchUISymbolContainerGrid.style.position = "static";
+
+        searchOverlayBackdrop.style.animationName = "";
+
+        SearchStyle.innerHTML = "@keyframes Swallow\n" +
+            "{\n" +
+            "\n" +
+            "  from\n" +
+            "  {\n" +
+            "    position: static;\n" +
+            "  }\n" +
+            "  0%{\n" +
+            "    position: fixed;\n" +
+            "    top: "+SearchMarginTop+"px;\n" +
+            "  }\n" +
+            "  50%{\n" +
+            "    position: fixed;\n" +
+            "    opacity: 1;\n" +
+            "  }\n" +
+            "  to\n" +
+            "  {\n" +
+            "    position: fixed;\n" +
+            "    top: calc(1 * var(--unit));\n" +
+            "    opacity: 0;\n" +
+            "  }\n" +
+            "\n" +
+            "}";
+
+
+
+        searchUISymbolContainerGrid.style.animationName = "Swallow";
+        searchUISymbolContainerGrid.style.animationDuration = "0.4s";
+        searchUISymbolContainerGrid.style.animationFillMode = "forwards"; //Stops reset
+
+        setTimeout(function ()
+        {
+            header.style.zIndex = 0;
+
+            searchOverlayBackdrop.style.animationName = "GrowMenu";
+            searchOverlayBackdrop.style.animationDuration = "0.4s";
+            searchOverlayBackdrop.style.animationFillMode = "forwards"; //Stops reset
+
+            Util.toggleClass(searchOverlay, "visibleSearchAnimation");
+            if (Util.hasClass(searchOverlay, "visibleSearchAnimation")) {
+                SearchOverlay.active = true;
+                searchNoResult.style.display = "none";
+                SearchOverlay.clearInput();
+                SearchOverlay.clearGroup();
+                SearchOverlay.search(searchOverlayInput);
+                document.getElementById("searchOverlayInput").focus();
+
+            } else {
+                SearchOverlay.active = false;
+            }
+        }, 100);
+    },
+
+    maxLengthCheck: function (e){
+
+        var searchText = e.value.replace(/[^A-Za-z0-9\W]/g, "");
+        var maxLength = parseInt(e.getAttribute("data-maxlength"));
+
+        if (searchText.length > maxLength) {
+            searchText = searchText.slice(0, maxLength);
+            e.value = searchText;
+            e.setAttribute("value", searchText);
+            console.log(e.value.length);
+        }
+    },
+
+    search: function (e) {
+        var searchOverlay = document.getElementById("searchOverlay");
+        var searchText = e.value.replace(/[^A-Za-z0-9\W]/g, "");
+        var searchMinChar = e.getAttribute("data-minCharacters");
+        e.value = searchText;
+        e.setAttribute("value", searchText);
+
+        if (searchText !== "" && searchText.length < parseInt(searchMinChar)) {
+            searchText = "";
+        }
+
+        if (searchOverlay != null && ( searchText === "" || searchText.length >= parseInt(searchMinChar))) {
+
+            var searchOverlayKey = searchOverlay.getAttribute("data-key");
+            var initialParent = searchOverlay.getAttribute("data-initialParent");
+            var initialType = searchOverlay.getAttribute("data-initialType");
+            var remoteParent = searchOverlay.getAttribute("data-remoteParent");
+            var remoteType = searchOverlay.getAttribute("data-remoteType");
+            var remoteSource = searchOverlay.getAttribute("data-remoteSource");
+            var searchCorrectType = searchOverlay.getAttribute("data-searchCorrectDataType");
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/banking/overlaySearch?initialDataParent=" + initialParent + "&initialDataType=" + initialType
+                + "&remoteDataParent=" + remoteParent + "&remoteDataType=" + remoteType + "&remoteDataSource=" + remoteSource
+                + "&searchKey=" + searchOverlayKey + "&searchValue=" + searchText + "&searchCorrectType=" + searchCorrectType);
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhr.onload = SearchOverlay._searchResponseHandler.bind(xhr);
+            xhr.send();
+
+        }
+
+    },
+
+    _searchResponseHandler: function () {
+        var response = JSON.parse(this.responseText);
+        var searchNoResult = document.getElementById("seachNoResultID");
+
+        SearchOverlay.clearGroup();
+
+        if (response.searchText === "") {
+            searchNoResult.style.display = "none";
+        } else {
+            if (response.data != null) {
+                if (response.data.length < 1) {
+                    searchNoResult.style.display = "";
+                } else {
+                    searchNoResult.style.display = "none";
+                }
+            }
+        }
+
+        for (var dataCount = 0; dataCount < response.data.length; dataCount++) {
+            var data = response.data[dataCount];
+            var searchOverlay = document.getElementById("searchOverlay");
+
+            var group = searchOverlay.querySelector("[data-groupId='" + data.groupId + "']");
+            if (group !== null) {
+                var storeGroup = group.querySelector(".searchOverlayGroupCard");
+                var isCollapsed = false;
+
+                if(isCollapsed == false && !storeGroup.classList.contains("collapse")){
+                    var showMoreButton = storeGroup.parentElement.querySelector(".searchOverlayGroupButton").querySelector(".showMoreLessButton");
+
+                    showMoreButton.innerText = "Show more";
+                    storeGroup.classList.add("collapse");
+                    isCollapsed = true;
+                }
+                if (storeGroup !== null) {
+                    Util.removeClass(group, "visible");
+                    var isAdded = false;
+
+                    if (storeGroup.children.length > 0) {
+                        var storeGroupChildrenSize = storeGroup.children.length;
+                        var groupChild = storeGroup.children[storeGroupChildrenSize - 1];
+                        groupChild.insertAdjacentHTML('afterend', data.html);
+                        isAdded = true;
+                    }
+                    if (!isAdded) {
+                        storeGroup.innerHTML = data.html;
+                    }
+                }
+            }
+        }
+
+        var searchOverlayGroupsVisble = document.querySelectorAll(".searchOverlayGroup");
+
+        for (var searchOverlayGroup = 0; searchOverlayGroup < searchOverlayGroupsVisble.length; searchOverlayGroup++) {
+
+            if (!searchOverlayGroupsVisble[searchOverlayGroup].classList.contains("visible")) {
+
+                var searchOverlayCard = searchOverlayGroupsVisble[searchOverlayGroup];
+                var rowItems = searchOverlayCard.querySelector(".searchOverlayGroupCard").children.length;
+                var searchOverlayGroupCard = searchOverlayCard.querySelector(".searchOverlayGroupCard");
+                var showButton = searchOverlayCard.querySelector(".searchOverlayGroupButton");
+                var maxVisible = searchOverlayCard.getAttribute("data-maxvisible");
+
+                //Show x rows
+                //Each row is 16.333333333 units
+                var rowHeight = 16.333333333;
+                var unit = Root.determineUnitNeeded();
+                var style = document.getElementById("searchOverlayStyling_" + searchOverlayGroup );
+                var addToScreen = false;
+                
+                if (style == null) {
+                    style = document.createElement('style');
+                    style.type = 'text/css';
+                    style.id = "searchOverlayStyling_"+ searchOverlayGroup;
+                    addToScreen = true;
+                }
+
+                style.innerHTML = '.searchOverlayGroup .searchOverlayGroupCard.collapse { max-height : '+ "calc(" + (maxVisible * rowHeight) + " * var(" + unit + "))" +' }' ;
+
+                if (addToScreen) {
+                    searchOverlayCard.appendChild(style);
+                }
+
+                if (parseInt(rowItems) <= parseInt(maxVisible)) {
+                    showButton.style.display = "none";
+                } else {
+                    showButton.style.display = "";
+                }
+            }
+        }
+
+    },
+
+    clearInput: function () {
+        var searchOverlay = document.getElementById("searchOverlay");
+
+        var searchInput = searchOverlay.querySelector(".searchOverlayHeaderInput");
+        searchInput.value = "";
+    },
+
+    inputFocus: function (input) {
+        Util.addClass(input, 'focus');
+    },
+
+    inputBlur: function (input) {
+        Util.removeClass(input, 'focus');
+    },
+
+    toggleGroupCollapse: function (groupId) {
+        var searchOverlay = document.getElementById("searchOverlay");
+        var group = searchOverlay.querySelector("[data-groupId='" + groupId + "']");
+        var storeGroup = group.querySelector(".searchOverlayGroupCard");
+        Util.toggleClass(storeGroup, "collapse");
+    },
+
+    clearGroup: function () {
+        var searchOverlay = document.getElementById("searchOverlay");
+
+        var groups = searchOverlay.querySelectorAll("[data-groupId]");
+
+        for (var groupCount = 0; groupCount < groups.length; groupCount++) {
+            var group = groups[groupCount];
+            var storeGroup = group.querySelector(".searchOverlayGroupCard");
+
+            Util.removeClass(group, "visible");
+            Util.addClass(group, "visible");
+            Util.removeClass(group, "collapse");
+            Util.addClass(group, "collapse");
+
+            if (storeGroup.children.length > 0) {
+                storeGroup.innerHTML = "";
+            }
+        }
+    },
+
+    toggleSearchBarIcon: function () {
+
+        var searchOverlayInput = document.getElementById("searchOverlayInput");
+        var searchBarIconContainer = document.getElementById("searchCloseIcon");
+        var searchBarIcon = searchBarIconContainer.getAttribute("data-searchBarIcon");
+        var closeIcon = searchBarIconContainer.getAttribute("data-closeIcon");
+
+        if (searchOverlayInput.value != "") {
+            searchBarIconContainer.src = closeIcon;
+            searchBarIconContainer.setAttribute("data-clearInput", "Y");
+        }
+        else {
+            searchBarIconContainer.src = searchBarIcon;
+            searchBarIconContainer.setAttribute("data-clearInput", "N");
+        }
+    },
+
+    clearInputBox: function (e) {
+
+        var searchOverlayInput = document.getElementById("searchOverlayInput");
+
+        if (e.getAttribute("data-clearInput") == "Y") {
+
+            searchOverlayInput.value = "";
+            searchOverlayInput.setAttribute("value", "");
+            SearchOverlay.toggleSearchBarIcon();
+            SearchOverlay.clearGroup();
+            SearchOverlay.search(searchOverlayInput);
+
+        }
+    },
+
+    toggleShowMore: function (e) {
+
+        if (e.innerText.trim() == "Show more") {
+            e.innerText = "Show less";
+        }
+        else {
+            e.innerText = "Show more";
+        }
+
+    },
+
+    /**Use function to set delay on call for search results while typing still in progress: set data-timerValue=""**/
+    timerSearchInput: function (e) {
+
+        var timerCheck = e.getAttribute("data-timerValue");
+
+        if (e.value !== "") {
+
+            if (timerCheck == null || timerCheck == "") {
+
+                var timerId = setInterval(function () {
+                    Timers.clearOne(timerId);
+
+                    SearchOverlay.search(e);
+
+                }, 1000);
+                Timers.register(timerId);
+                e.setAttribute("data-timerValue", timerId);
+            } else {
+
+                var timerId = setInterval(function () {
+                    Timers.clearOne(timerId);
+
+                    SearchOverlay.search(e);
+
+                }, 1000);
+                Timers.register(timerId);
+
+                Timers.clearOne(timerCheck);
+                e.setAttribute("data-timerValue", timerId);
+            }
+        } else{
+            SearchOverlay.search(e);
+        }
+    }
+};

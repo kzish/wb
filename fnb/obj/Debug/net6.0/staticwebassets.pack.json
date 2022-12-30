@@ -1,0 +1,369 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\obj\\Debug\\net6.0\\scopedcss\\projectbundle\\fnb.bundle.scp.css",
+      "PackagePath": "staticwebassets\\fnb.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\bootstrap-materia.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap-materia.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\bootstrap.cerulean.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.cerulean.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\bootstrap.simplex.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\bootstrap.simplex.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\cust_style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\cust_style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\font-awesome.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\font-awesome.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\jquery.mCustomScrollbar.min.css",
+      "PackagePath": "staticwebassets\\assets\\css\\jquery.mCustomScrollbar.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\main_style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\main_style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\pagination.css",
+      "PackagePath": "staticwebassets\\assets\\css\\pagination.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\css\\style.css",
+      "PackagePath": "staticwebassets\\assets\\css\\style.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\_h_city_1.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\_h_city_1.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\_loading.gif",
+      "PackagePath": "staticwebassets\\assets\\img\\_loading.gif"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\bg_login - Copy (2).jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login - Copy (2).jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\bg_login - Copy.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login - Copy.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\bg_login.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\bg_login.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\fuel_icon.png",
+      "PackagePath": "staticwebassets\\assets\\img\\fuel_icon.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\h_city_1 - Copy.jpg",
+      "PackagePath": "staticwebassets\\assets\\img\\h_city_1 - Copy.jpg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\h_city_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\h_city_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\loader.gif",
+      "PackagePath": "staticwebassets\\assets\\img\\loader.gif"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\logo.jpeg",
+      "PackagePath": "staticwebassets\\assets\\img\\logo.jpeg"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\place-holder-profile-image.png",
+      "PackagePath": "staticwebassets\\assets\\img\\place-holder-profile-image.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\profile_place_holder.png",
+      "PackagePath": "staticwebassets\\assets\\img\\profile_place_holder.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\rubiem_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\rubiem_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\img\\speedlink_logo.png",
+      "PackagePath": "staticwebassets\\assets\\img\\speedlink_logo.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\js\\bootstrap.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\bootstrap.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\js\\fontawesome.js",
+      "PackagePath": "staticwebassets\\assets\\js\\fontawesome.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\js\\jquery-3.4.1.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery-3.4.1.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\js\\jquery.mCustomScrollbar.concat.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery.mCustomScrollbar.concat.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\js\\jquery.validate.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\jquery.validate.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\js\\popper.min.js",
+      "PackagePath": "staticwebassets\\assets\\js\\popper.min.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\assets\\js\\solid.js",
+      "PackagePath": "staticwebassets\\assets\\js\\solid.js"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\Animate.js.download",
+      "PackagePath": "staticwebassets\\iassets\\Animate.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\EasyScroller.js.download",
+      "PackagePath": "staticwebassets\\iassets\\EasyScroller.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\FileUploader.js.download",
+      "PackagePath": "staticwebassets\\iassets\\FileUploader.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\ImageCropper.css",
+      "PackagePath": "staticwebassets\\iassets\\ImageCropper.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\ImageCropper.js.download",
+      "PackagePath": "staticwebassets\\iassets\\ImageCropper.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\MarkerClusterer.js.download",
+      "PackagePath": "staticwebassets\\iassets\\MarkerClusterer.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\Scroller.js.download",
+      "PackagePath": "staticwebassets\\iassets\\Scroller.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\adapter.js.download",
+      "PackagePath": "staticwebassets\\iassets\\adapter.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\awesomplete.css",
+      "PackagePath": "staticwebassets\\iassets\\awesomplete.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\awesomplete.js.download",
+      "PackagePath": "staticwebassets\\iassets\\awesomplete.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\bCrypt.js.download",
+      "PackagePath": "staticwebassets\\iassets\\bCrypt.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\back.arrow.header.icon.v2.mdpi.png",
+      "PackagePath": "staticwebassets\\iassets\\back.arrow.header.icon.v2.mdpi.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\bankmail.js.download",
+      "PackagePath": "staticwebassets\\iassets\\bankmail.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\bib.js.download",
+      "PackagePath": "staticwebassets\\iassets\\bib.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\d3.v3.min.js.download",
+      "PackagePath": "staticwebassets\\iassets\\d3.v3.min.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\dataPoller.js.download",
+      "PackagePath": "staticwebassets\\iassets\\dataPoller.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\embeded_fonts.css",
+      "PackagePath": "staticwebassets\\iassets\\embeded_fonts.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\extras.js.download",
+      "PackagePath": "staticwebassets\\iassets\\extras.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\fePoller.js.download",
+      "PackagePath": "staticwebassets\\iassets\\fePoller.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\firebase-app.js.download",
+      "PackagePath": "staticwebassets\\iassets\\firebase-app.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\firebase-messaging.js.download",
+      "PackagePath": "staticwebassets\\iassets\\firebase-messaging.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\flatpickr.js.download",
+      "PackagePath": "staticwebassets\\iassets\\flatpickr.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\flatpickr.min.css",
+      "PackagePath": "staticwebassets\\iassets\\flatpickr.min.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\forge.js.download",
+      "PackagePath": "staticwebassets\\iassets\\forge.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\form.js.download",
+      "PackagePath": "staticwebassets\\iassets\\form.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\geoLocate.js.download",
+      "PackagePath": "staticwebassets\\iassets\\geoLocate.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\high-mm-dark.css",
+      "PackagePath": "staticwebassets\\iassets\\high-mm-dark.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\high-mm.css",
+      "PackagePath": "staticwebassets\\iassets\\high-mm.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\high.css",
+      "PackagePath": "staticwebassets\\iassets\\high.css"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\is.js.download",
+      "PackagePath": "staticwebassets\\iassets\\is.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\janus.js.download",
+      "PackagePath": "staticwebassets\\iassets\\janus.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\keystone.bundle.js.download",
+      "PackagePath": "staticwebassets\\iassets\\keystone.bundle.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\loader.js.download",
+      "PackagePath": "staticwebassets\\iassets\\loader.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\login.logo.icon.mdpi.png",
+      "PackagePath": "staticwebassets\\iassets\\login.logo.icon.mdpi.png"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\longpress.js.download",
+      "PackagePath": "staticwebassets\\iassets\\longpress.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\lottoPowerball.js.download",
+      "PackagePath": "staticwebassets\\iassets\\lottoPowerball.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\mm.js.download",
+      "PackagePath": "staticwebassets\\iassets\\mm.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\mmPoller.js.download",
+      "PackagePath": "staticwebassets\\iassets\\mmPoller.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\onlinePoller.js.download",
+      "PackagePath": "staticwebassets\\iassets\\onlinePoller.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\overview.js.download",
+      "PackagePath": "staticwebassets\\iassets\\overview.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\quirks.js.download",
+      "PackagePath": "staticwebassets\\iassets\\quirks.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\root.js.download",
+      "PackagePath": "staticwebassets\\iassets\\root.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\rootPoller.js.download",
+      "PackagePath": "staticwebassets\\iassets\\rootPoller.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\search.js.download",
+      "PackagePath": "staticwebassets\\iassets\\search.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\searchOverlay.js.download",
+      "PackagePath": "staticwebassets\\iassets\\searchOverlay.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\securityTools.js.download",
+      "PackagePath": "staticwebassets\\iassets\\securityTools.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\serviceWorkerController.js.download",
+      "PackagePath": "staticwebassets\\iassets\\serviceWorkerController.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\sharesGraph.js.download",
+      "PackagePath": "staticwebassets\\iassets\\sharesGraph.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\sortable.js.download",
+      "PackagePath": "staticwebassets\\iassets\\sortable.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\timers.js.download",
+      "PackagePath": "staticwebassets\\iassets\\timers.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\transfers.js.download",
+      "PackagePath": "staticwebassets\\iassets\\transfers.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\transfersHigh.js.download",
+      "PackagePath": "staticwebassets\\iassets\\transfersHigh.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\util.js.download",
+      "PackagePath": "staticwebassets\\iassets\\util.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\voicenotes.js.download",
+      "PackagePath": "staticwebassets\\iassets\\voicenotes.js.download"
+    },
+    {
+      "Id": "C:\\.NetProjects\\WB\\fnb\\wwwroot\\iassets\\voip.js.download",
+      "PackagePath": "staticwebassets\\iassets\\voip.js.download"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.build.fnb.props",
+      "PackagePath": "build\\fnb.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildMultiTargeting.fnb.props",
+      "PackagePath": "buildMultiTargeting\\fnb.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildTransitive.fnb.props",
+      "PackagePath": "buildTransitive\\fnb.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.fnb.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

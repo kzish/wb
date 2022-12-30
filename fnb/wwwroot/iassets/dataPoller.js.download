@@ -1,0 +1,40 @@
+var DataPoller = {
+
+    options: {
+        interval: 3000
+    },
+
+    _pollParent: null,
+    _pollType: null,
+    _parentElement: null,
+
+    _pollDataResponseHandler: function () {
+        var response = JSON.parse(this.responseText);
+
+        if (response.dataHTML) {
+
+            DataPoller._parentElement.innerHTML = "";
+            DataPoller._parentElement.innerHTML = response.dataHTML;
+            window.scrollTo(0, document.body.scrollHeight);
+            Quirks._applyWrapPrevention();
+        }
+    },
+
+    _pollData: function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/banking/partialConversation?Type=" + this._pollType + "&Parent=" + this._pollParent);
+        xhr.onload = DataPoller._pollDataResponseHandler.bind(xhr);
+        xhr.send();
+    },
+
+    start: function (parent, parentElement, type) {
+        DataPoller._pollParent = parent;
+        DataPoller._parentElement = parentElement;
+        DataPoller._pollType = type;
+        var timerId = setInterval(function () {
+            DataPoller._pollData()
+        }, DataPoller.options.interval);
+        Timers.register(timerId);
+    }
+
+}

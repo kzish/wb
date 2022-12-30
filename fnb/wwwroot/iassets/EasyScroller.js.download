@@ -1,0 +1,394 @@
+var EasyScroller = function(content) {
+	
+	this.content = content;
+	this.container = content.parentNode;
+	this.containerParent = this.container.parentNode;
+
+	// create Scroller instance
+	var that = this;
+	this.scroller = new Scroller(function(left, top, zoom) {
+    	//Apply coordinates/zooming
+    	that.render(left, top, zoom);
+	}, {
+		//Overwrite Settings
+	    snapping: (content.getAttribute("data-scrollable-NoSnapping") === "true") ? false : true,
+	    scrollingX: (content.getAttribute("data-scrollable-x") === "true"),
+	    scrollingY: (content.getAttribute("data-scrollable-y") === "true"),
+	    bouncing: (content.getAttribute("data-bounce") === "true"),
+        scrollingCompleteIndex: (window[content.getAttribute("data-scrollable-func")] !== undefined? window[content.getAttribute("data-scrollable-func")] : eval(content.getAttribute("data-scrollable-func"))),
+        containerParentPaddingLeft: parseInt(window.getComputedStyle(this.containerParent, null).getPropertyValue('padding-left')),
+		containerParentPaddingTop: parseInt(window.getComputedStyle(this.containerParent, null).getPropertyValue('padding-top')),
+        scrollContentAutoSize: (content.getAttribute("data-scrollContentAutoSize") === "true"),
+		autoScrolling: (content.getAttribute("data-auto-scroll-func")),
+		snapEndFuncOpen: content.getAttribute("data-scrollable-snapEndFuncOpen"),
+		snapEndFuncClose: content.getAttribute("data-scrollable-snapEndFuncClose"),
+		snapToOriginal: content.getAttribute("data-scrollable-snapToOriginal"),
+		scrollDirection: content.getAttribute("data-scrollable-scrollDirection")
+	},content);
+
+	// bind events
+	this.bindEvents();
+
+	// the content element needs a correct transform origin for zooming
+	this.content.style[EasyScroller.vendorPrefix + 'TransformOrigin'] = "left top";
+
+	// reflow for the first time
+	this.reflow();
+
+    var indexing = content.getAttribute('data-indexing');
+    if (indexing != null && indexing) {
+        var index_x = content.getAttribute('data-index-x');
+        if (index_x != null) {
+            var index_x_eval = eval(index_x);
+            that.scroller.scrollTo(index_x_eval, null, false, null);
+        }
+        var index_y = content.getAttribute('data-index-y');
+        if (index_y != null) {
+            var index_y_eval = eval(index_y);
+            that.scroller.scrollTo(null, index_y_eval, false, null);
+        }
+    }
+
+    //attach the scroller to the content element for reference to functions
+    content.scroller = this.scroller;
+
+    if(that.scroller._elem.getAttribute("data-auto-scroll-func") != null){
+    	that.scroller.pageScroll(that.scroller);
+	}
+};
+
+EasyScroller.prototype.render = (function() {
+	
+	var docStyle = document.documentElement.style;
+	
+	var engine;
+	if (window.opera && Object.prototype.toString.call(opera) === '[object Opera]') {
+		engine = 'presto';
+	} else if ('MozAppearance' in docStyle) {
+		engine = 'gecko';
+	} else if ('WebkitAppearance' in docStyle) {
+		engine = 'webkit';
+	} else if (typeof navigator.cpuClass === 'string') {
+		engine = 'trident';
+	}
+	
+	var vendorPrefix = EasyScroller.vendorPrefix = {
+		trident: 'ms',
+		gecko: 'Moz',
+		webkit: 'Webkit',
+		presto: 'O'
+	}[engine];
+	
+	var helperElem = document.createElement("div");
+	var undef;
+	
+	var perspectiveProperty = vendorPrefix + "Perspective";
+	var transformProperty = vendorPrefix + "Transform";
+	
+	if (helperElem.style[perspectiveProperty] !== undef) {
+		
+		return function(left, top, zoom) {
+			var sign = "-";
+			if(this.scroller.options.scrollDirection != null && this.scroller.options.scrollDirection == "RIGHT"){
+				sign = "+";
+			}
+			this.content.style[transformProperty] = 'translate3d(' + (sign+left) + 'px,' + (-top) + 'px,0) scale(' + zoom + ')';
+		};	
+		
+	} else if (helperElem.style[transformProperty] !== undef) {
+		
+		return function(left, top, zoom) {
+			this.content.style[transformProperty] = 'translate(' + (-left) + 'px,' + (-top) + 'px) scale(' + zoom + ')';
+		};
+		
+	} else {
+		
+		return function(left, top, zoom) {
+			this.content.style.marginLeft = left ? (-left/zoom) + 'px' : '';
+			this.content.style.marginTop = top ? (-top/zoom) + 'px' : '';
+			this.content.style.zoom = zoom || '';
+		};
+		
+	}
+})();
+
+EasyScroller.prototype.reflow = function() {
+
+	// set the right scroller dimensions
+	// changed from this.content.offsetWidth to this.container.firstElementChild.scrollWidth due to browser inconsistency between firefox and chrome
+	this.scroller.setDimensions(this.container.clientWidth, this.container.clientHeight, this.container.scrollWidth, this.content.offsetHeight);
+
+	// refresh the position for zooming purposes
+	var rect = this.container.getBoundingClientRect();
+	this.scroller.setPosition(rect.left + this.container.clientLeft, rect.top + this.container.clientTop);
+	
+	//set the snapping size
+
+    try {
+        var snapX = JSON.parse(this.content.getAttribute("data-scrollable-snap-x"));
+    } catch (e) {
+	}
+    try {
+        var snapY = JSON.parse(this.content.getAttribute("data-scrollable-snap-y"));
+    } catch (e) {
+	}
+
+    if (this.content.getAttribute("data-scrollable-snap-calc-x") == "true") {
+    	snapX = [];
+    	var totalWidth = 0;
+    	for (var index = 0; index < this.content.children.length - 1; index++) {
+			totalWidth += this.content.children[index].offsetWidth;
+			snapX.push(totalWidth);
+		}
+	}/*/snapping for Y axis,*/
+	else if (this.content.getAttribute("data-scrollable-snap-calc-y") == "true") {
+        snapY = [];
+        var totalHeight = 0;
+        for (var index = 0; index <= this.content.children.length - 1; index++) {
+			var elementHidden = this.content.children[index].style.display === "none";
+			this.content.children[index].style.display = "";
+			totalHeight += this.content.children[index].offsetHeight;
+			snapY.push(totalHeight);
+			this.content.children[index].style.display = elementHidden ? "none" : "";
+        }
+    }
+
+    var snapSetX = 0;
+	var snapSetY = 0;
+
+	if (snapX == null) {
+		snapSetX = this.container.clientWidth;
+	}
+	else {
+		snapSetX = snapX;
+	}
+	
+	if (snapY == null) {
+		snapSetY = this.container.clientHeight;
+	}
+	else {
+		  snapSetY = snapY;
+		  //snapSetY=totalHeight;
+	}
+
+	if(this.content.getAttribute("data-scrollable-special-snap-x") == "true"){
+		snapSetX = this.container.scrollWidth - this.container.clientWidth;
+	}
+
+	this.scroller.setSnapSize(snapSetX, snapSetY);
+	
+};
+
+EasyScroller.prototype.bindEvents = function() {
+
+	var that = this;
+
+	// reflow handling
+	window.addEventListener("resize", function() {
+		that.reflow();
+	}, false);
+
+	// touch devices bind touch events
+	if (('ontouchstart' in window || navigator.maxTouchPoints) == 1) {
+
+		this.container.addEventListener("touchstart", function(e) {
+			
+			// Don't react if initial down happens on a form element
+			//if (e.touches[0] && e.touches[0].target && e.touches[0].target.tagName.match(/input|textarea|select/i)) {
+			//	return;
+			//}
+
+			that.scroller.doTouchStart(e.touches, e.timeStamp);
+			//e.preventDefault();
+
+		}, false);
+
+		this.container.addEventListener("touchmove", function(e) {
+
+			//Disable then enable click for child elements as in some cases the onclick will fire for it even though the user is dragging/scrolling and not clicking
+			var children = that.content.children;
+			for(var i = 0; i < children.length; i++){
+				children[i].style.pointerEvents = "none";
+			}
+
+			var Xpos = that.scroller.__clientLeft;
+			var Ypos = that.scroller.__clientTop;
+			var XSize = that.scroller.__clientWidth;
+			var YSize = that.scroller.__clientHeight;
+			
+			var WillX = that.scroller.options.scrollingX;
+			var WillY = that.scroller.options.scrollingY;
+			
+			var LastTLeft = that.scroller.__lastTouchLeft;
+			var LastTTop = that.scroller.__lastTouchTop;
+			 
+			// Are we scrolling on X
+			if (WillX) {
+				//Is it a false trigger
+				if (LastTLeft != null) {
+					// Is it a significant scroll
+					if ((e.touches[0].pageX > (LastTLeft + 10)) || (e.touches[0].pageX < (LastTLeft - 10))) {
+						// Is it within the control
+						if (e.touches[0].pageX > Xpos && e.touches[0].pageX < (Xpos + XSize)) {
+							that.scroller.doTouchMove(e.touches, e.timeStamp, e.scale);
+							e.preventDefault();
+						}
+					}
+				}
+			}
+			// Are we scrolling on Y
+			else if (WillY) {
+				//Is it a false trigger
+				if(LastTTop != null) {
+					// Is it a significant scroll
+					if (e.touches[0].pageY > (LastTTop + 10) || e.touches[0].pageY < (LastTTop - 10)) {
+						// Is it within the control
+						if (e.touches[0].pageY > Ypos && e.touches[0].pageY < (Ypos + YSize)) {
+							//console.log("Do Y");
+							that.scroller.doTouchMove(e.touches, e.timeStamp, e.scale);
+							e.preventDefault();
+						}
+					}
+				}
+			}
+			
+		}, false);
+
+		this.container.addEventListener("touchend", function(e) {
+			that.scroller.doTouchEnd(e.timeStamp);
+			var children = that.content.children;
+			for(var i = 0; i < children.length; i++){
+				children[i].style.pointerEvents = "auto";
+			}
+		}, false);
+
+		this.container.addEventListener("touchcancel", function(e) {
+			that.scroller.doTouchEnd(e.timeStamp);
+			var children = that.content.children;
+			for(var i = 0; i < children.length; i++){
+				children[i].style.pointerEvents = "auto";
+			}
+		}, false);
+
+	// non-touch bind mouse events
+	} else {
+		
+		var mousedown = false;
+
+		this.container.addEventListener("mousedown", function(e) {
+
+			if (e.target.tagName.match(/input|textarea|select/i)) {
+				return;
+			}
+		
+			that.scroller.doTouchStart([{
+				pageX: e.pageX,
+				pageY: e.pageY
+			}], e.timeStamp);
+
+			mousedown = true;
+			e.preventDefault();
+
+		}, false);
+
+		document.addEventListener("mousemove", function(e) {
+
+			if (!mousedown) {
+				return;
+			}
+			
+			that.scroller.doTouchMove([{
+				pageX: e.pageX,
+				pageY: e.pageY
+			}], e.timeStamp);
+
+			//Disable then enable click for child elements as in some cases the onclick will fire for it even though the user is dragging/scrolling and not clicking
+			var children = that.content.children;
+			for(var i = 0; i < children.length; i++){
+				children[i].style.pointerEvents = "none";
+			}
+
+			mousedown = true;
+
+		}, false);
+
+		document.addEventListener("mouseup", function(e) {
+
+			if (!mousedown) {
+				return;
+			}
+			
+			that.scroller.doTouchEnd(e.timeStamp);
+
+			//Disable then enable click for child elements as in some cases the onclick will fire for it even though the user is dragging/scrolling and not clicking
+			var children = that.content.children;
+			for(var i = 0; i < children.length; i++){
+				children[i].style.pointerEvents = "auto";
+			}
+
+			mousedown = false;
+
+		}, false);
+
+		this.container.addEventListener("mousewheel", function(e) {
+			if(that.scroller.options.zooming) {
+				that.scroller.doMouseZoom(e.wheelDelta, e.timeStamp, e.pageX, e.pageY);	
+				e.preventDefault();
+			}
+		}, false);
+
+	}
+
+};
+
+function AttachEasyScroller(delay){
+
+	if (delay == null) { delay = 0;	}
+
+	var timerId = setInterval(function() {
+        Timers.clearOne(timerId);
+
+		var elements = document.querySelectorAll('[data-scrollable="y"]');
+		for (var i = 0; i < elements.length; i++) {
+
+			var element = elements[i];
+			var scrollable = element.dataset.scrollable;
+			var zoomable = element.dataset.zoomable || '';
+			var zoomOptions = zoomable.split('-');
+			var minZoom = zoomOptions.length > 1 && parseFloat(zoomOptions[0]);
+			var maxZoom = zoomOptions.length > 1 && parseFloat(zoomOptions[1]);
+
+			new EasyScroller(element);
+
+            element.setAttribute("data-scrollable","n");
+
+
+			//Easy Scroller Tags
+			//--------------------------------------------
+			//data-scrollable="N/A" 					- Just flags the item as being scroller.
+			//data-scrollable-func="{FUNCTION}"			- Method of attaching function to scroller location.
+			//data-scrollable-x="true/false"			- Whether we will scroll on X
+			//data-scrollable-y="true/false"			- Whether we will scroll on Y
+			//data-scrollable-zoom="true/false"			- Whether we will zoom
+			//data-scrollable-zoom-min="{VALUE}"		- Zoom minimum
+			//data-scrollable-zoom-max="{VALUE}"		- Zoom maximum
+			//data-scrollable-snap-x="{VALUE}"      	- Snap X size
+			//data-scrollable-snap-y="{VALUE}"      	- Snap Y size
+			//data-bounce="{VALUE}"						- Set bounce true or false
+			//data-indexing="true/false"				- Set index on load on/off
+			//data-index-x="{VALUE}"					- Set index on x axe
+            //data-index-y="{VALUE}"					- Set index on y axe
+            //data-scrollable-set-width="true/false"	- Set to calc width of content for alignment
+            //data-scrollable-snap-calc-x="true/false"  - Set snapx on dynamically set content width
+			//data-scrollContentAutoSize				- Set content to auto size based on content
+			//data-scrollable-special-snap-x			- Uses width and scrollwidth of element to calculate a snap x
+			//data-scrollable-snapToOriginal="true/false"	- Forces snap animation to snap back to original scroll position of element
+			//data-scrollable-scrollDirection="RIGHT"	 	- Sets swipe direction (default is left)
+			//data-scrollable-snapEndFuncOpen			- Method to call at end of snap (snap open)
+			//data-scrollable-snapEndFuncClose			- Method to call at end of snap (snap close)
+			//--------------------------------------------
+		}
+
+	}, delay);
+	Timers.register(timerId);
+}
